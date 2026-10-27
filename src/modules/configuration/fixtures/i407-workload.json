@@ -1,0 +1,794 @@
+{
+  "definitionKey": "I_407_WORKLOAD",
+  "displayName": "I-407 Workload",
+  "entityType": "WORKLOAD",
+  "schema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "shippingDetails": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "notes": {
+            "type": "string"
+          },
+          "shipDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "trackingId": {
+            "type": "string"
+          },
+          "shipPOCName": {
+            "type": "string"
+          },
+          "shipTrackingNumber": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "dataEntryDetails": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "notes": {
+            "type": "string"
+          },
+          "aNumber": {
+            "type": "string"
+          },
+          "boxNumber": {
+            "type": "string"
+          },
+          "trackingId": {
+            "type": "string"
+          },
+          "completeDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "receivedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "dataEntryDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "dataKeyerName": {
+            "type": "string"
+          },
+          "receiptNumber": {
+            "type": "string"
+          },
+          "workloadStatus": {
+            "enum": [
+              "Accepted",
+              "Rejected",
+              "Fraud Review"
+            ],
+            "type": "string"
+          },
+          "applicantLastName": {
+            "type": "string"
+          },
+          "applicantFirstName": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "shreddingDetails": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "shredDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "trackingId": {
+            "type": "string"
+          },
+          "shredPOCName": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "additionalProperties": false
+  },
+  "workflow": {
+    "initialStageKey": "READY_FOR_DATA_ENTRY",
+    "terminalStageKeys": [
+      "COMPLETED"
+    ],
+    "stages": [
+      {
+        "order": 999,
+        "layout": {
+          "x": 877.3467407226562,
+          "y": 94.09063720703125
+        },
+        "stageKey": "COMPLETED",
+        "terminal": true,
+        "actionKeys": [],
+        "displayName": "Completed",
+        "assignmentPolicy": {
+          "required": false,
+          "clearOnTransition": false
+        }
+      },
+      {
+        "order": 10,
+        "layout": {
+          "x": 40,
+          "y": 48
+        },
+        "formKey": "I407_DATA_ENTRY",
+        "queueKey": "READY_FOR_DATA_ENTRY",
+        "stageKey": "READY_FOR_DATA_ENTRY",
+        "actionKeys": [
+          "COMPLETE",
+          "RELEASE_ASSIGNMENT"
+        ],
+        "displayName": "Ready for Data Entry",
+        "assignmentPolicy": {
+          "required": true,
+          "clearOnTransition": true
+        },
+        "transitionSetKey": "FROM_DATA_ENTRY"
+      },
+      {
+        "order": 20,
+        "layout": {
+          "x": 491.57598876953125,
+          "y": 52.89697265625
+        },
+        "formKey": "I407_SHIPPING_DETAILS",
+        "queueKey": "READY_FOR_SHIPPING",
+        "stageKey": "READY_FOR_SHIPPING",
+        "actionKeys": [
+          "COMPLETE",
+          "RELEASE_ASSIGNMENT"
+        ],
+        "displayName": "Ready for Shipping",
+        "assignmentPolicy": {
+          "required": true,
+          "clearOnTransition": true
+        },
+        "transitionSetKey": "FROM_READY_FOR_SHIPPING"
+      },
+      {
+        "order": 30,
+        "layout": {
+          "x": 492.38604736328125,
+          "y": 243.46798706054688
+        },
+        "formKey": "I407_SHREDDING_DETAILS",
+        "queueKey": "READY_FOR_SHREDDING",
+        "stageKey": "READY_FOR_SHREDDING",
+        "actionKeys": [
+          "COMPLETE",
+          "RELEASE_ASSIGNMENT"
+        ],
+        "displayName": "Ready for Shredding",
+        "assignmentPolicy": {
+          "required": true,
+          "clearOnTransition": true
+        },
+        "transitionSetKey": "FROM_READY_FOR_SHREDDING"
+      }
+    ],
+    "transitionSets": [
+      {
+        "rules": [
+          {
+            "when": {
+              "path": "$.dataEntryDetails.workloadStatus",
+              "value": "Rejected",
+              "operator": "EQUALS"
+            },
+            "ruleKey": "RULE_WHEN_REJECTED",
+            "priority": 1,
+            "targetStageKey": "READY_FOR_SHIPPING"
+          },
+          {
+            "when": {
+              "path": "$.dataEntryDetails.workloadStatus",
+              "value": "Accepted",
+              "operator": "EQUALS"
+            },
+            "ruleKey": "RULE_WHEN_ACCEPTED",
+            "priority": 2,
+            "targetStageKey": "READY_FOR_SHREDDING"
+          },
+          {
+            "when": {
+              "path": "$.dataEntryDetails.workloadStatus",
+              "value": "Fraud Review",
+              "operator": "EQUALS"
+            },
+            "ruleKey": "RULE_WHEN_FRAUD_REVIEW",
+            "priority": 3,
+            "targetStageKey": "READY_FOR_SHIPPING"
+          }
+        ],
+        "evaluationMode": "FIRST_MATCH",
+        "transitionSetKey": "FROM_DATA_ENTRY",
+        "defaultTargetStageKey": "READY_FOR_SHIPPING"
+      },
+      {
+        "rules": [],
+        "evaluationMode": "FIRST_MATCH",
+        "transitionSetKey": "FROM_READY_FOR_SHIPPING",
+        "defaultTargetStageKey": "COMPLETED"
+      },
+      {
+        "rules": [],
+        "evaluationMode": "FIRST_MATCH",
+        "transitionSetKey": "FROM_READY_FOR_SHREDDING",
+        "defaultTargetStageKey": "COMPLETED"
+      },
+      {
+        "rules": [],
+        "evaluationMode": "FIRST_MATCH",
+        "transitionSetKey": "FROM_STAGE",
+        "defaultTargetStageKey": "COMPLETED"
+      },
+      {
+        "rules": [],
+        "evaluationMode": "FIRST_MATCH",
+        "transitionSetKey": "FROM_STAGE_2",
+        "defaultTargetStageKey": "COMPLETED"
+      }
+    ]
+  },
+  "forms": {
+    "I407_DATA_ENTRY": {
+      "title": "Data Entry",
+      "schema": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "notes": {
+            "type": "string"
+          },
+          "aNumber": {
+            "type": "string"
+          },
+          "boxNumber": {
+            "type": "string"
+          },
+          "trackingId": {
+            "type": "string"
+          },
+          "completeDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "receivedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "dataEntryDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "dataKeyerName": {
+            "type": "string"
+          },
+          "receiptNumber": {
+            "type": "string"
+          },
+          "workloadStatus": {
+            "enum": [
+              "Accepted",
+              "Rejected",
+              "Fraud Review"
+            ],
+            "type": "string"
+          },
+          "applicantLastName": {
+            "type": "string"
+          },
+          "applicantFirstName": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "formKey": "I407_DATA_ENTRY",
+      "dataPath": "$.dataEntryDetails",
+      "sections": [
+        {
+          "title": "Tracking",
+          "fields": [
+            {
+              "path": "$.trackingId",
+              "label": "Workload Tracking #",
+              "width": 12,
+              "fieldKey": "WORKLOAD_TRACKING_ID",
+              "component": "TRACKING_ID_DISPLAY"
+            },
+            {
+              "path": "$.workloadStatus",
+              "label": "Workload Status",
+              "width": 12,
+              "options": [
+                {
+                  "label": "Accepted",
+                  "value": "Accepted"
+                },
+                {
+                  "label": "Rejected",
+                  "value": "Rejected"
+                },
+                {
+                  "label": "Fraud Review",
+                  "value": "Fraud Review"
+                }
+              ],
+              "fieldKey": "WORKLOAD_STATUS",
+              "component": "SELECT"
+            },
+            {
+              "path": "$.receivedDate",
+              "label": "Received Date",
+              "width": 12,
+              "fieldKey": "RECEIVED_DATE",
+              "component": "DATE_INPUT"
+            },
+            {
+              "path": "$.dataKeyerName",
+              "label": "Data Keyer Name",
+              "width": 12,
+              "fieldKey": "DATA_KEYER_NAME",
+              "component": "READ_ONLY_VALUE",
+              "fillFrom": "ASSIGNED_TO",
+              "splunkPolicy": {
+                "mode": "MASK",
+                "prefixChars": 1,
+                "suffixChars": 3,
+                "maskStrategy": "KEEP_PREFIX_SUFFIX"
+              },
+              "piiClassification": "PII"
+            },
+            {
+              "path": "$.dataEntryDate",
+              "label": "Data Entry Date",
+              "width": 12,
+              "fieldKey": "DATA_ENTRY_DATE",
+              "component": "DATE_INPUT"
+            },
+            {
+              "path": "$.boxNumber",
+              "label": "Box Number",
+              "width": 12,
+              "fieldKey": "BOX_NUMBER",
+              "component": "TEXT_INPUT"
+            },
+            {
+              "path": "$.completeDate",
+              "label": "Complete Date",
+              "width": 12,
+              "fieldKey": "COMPLETE_DATE",
+              "component": "DATE_INPUT"
+            },
+            {
+              "path": "$.notes",
+              "label": "Notes",
+              "width": 12,
+              "fieldKey": "NOTES",
+              "component": "TEXT_AREA"
+            }
+          ],
+          "layout": "TWO_COLUMN",
+          "sectionKey": "TRACKING"
+        },
+        {
+          "title": "Applicant Information",
+          "fields": [
+            {
+              "path": "$.aNumber",
+              "label": "A-Number",
+              "width": 12,
+              "fieldKey": "A_NUMBER",
+              "component": "A_NUMBER_INPUT",
+              "splunkPolicy": {
+                "mode": "MASK",
+                "prefixChars": 1,
+                "suffixChars": 3,
+                "maskStrategy": "KEEP_PREFIX_SUFFIX"
+              },
+              "piiClassification": "PII"
+            },
+            {
+              "path": "$.applicantLastName",
+              "label": "Applicant Last Name",
+              "width": 12,
+              "fieldKey": "APPLICANT_LAST_NAME",
+              "component": "TEXT_INPUT",
+              "splunkPolicy": {
+                "mode": "MASK",
+                "prefixChars": 1,
+                "suffixChars": 3,
+                "maskStrategy": "KEEP_PREFIX_SUFFIX"
+              },
+              "piiClassification": "PII"
+            },
+            {
+              "path": "$.applicantFirstName",
+              "label": "Applicant First Name",
+              "width": 12,
+              "fieldKey": "APPLICANT_FIRST_NAME",
+              "component": "TEXT_INPUT",
+              "splunkPolicy": {
+                "mode": "MASK",
+                "prefixChars": 1,
+                "suffixChars": 3,
+                "maskStrategy": "KEEP_PREFIX_SUFFIX"
+              },
+              "piiClassification": "PII"
+            },
+            {
+              "path": "$.receiptNumber",
+              "label": "Receipt Number",
+              "width": 12,
+              "fieldKey": "RECEIPT_NUMBER",
+              "component": "RECEIPT_NUMBER_INPUT",
+              "splunkPolicy": {
+                "mode": "MASK",
+                "prefixChars": 1,
+                "suffixChars": 3,
+                "maskStrategy": "KEEP_PREFIX_SUFFIX"
+              },
+              "piiClassification": "PII"
+            }
+          ],
+          "layout": "TWO_COLUMN",
+          "sectionKey": "APPLICANT"
+        }
+      ],
+      "behaviors": [
+        {
+          "when": {
+            "path": "$.workloadStatus",
+            "value": [
+              "Rejected",
+              "Fraud Review"
+            ],
+            "operator": "IN"
+          },
+          "effects": [
+            {
+              "visible": true,
+              "fieldKey": "NOTES",
+              "required": true
+            }
+          ],
+          "behaviorKey": "BEHAVIOR_1"
+        }
+      ]
+    },
+    "I407_SHIPPING_DETAILS": {
+      "title": "Release",
+      "schema": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "notes": {
+            "type": "string"
+          },
+          "shipDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "trackingId": {
+            "type": "string"
+          },
+          "shipPOCName": {
+            "type": "string"
+          },
+          "shipTrackingNumber": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "formKey": "I407_SHIPPING_DETAILS",
+      "dataPath": "$.shippingDetails",
+      "sections": [
+        {
+          "title": "Section",
+          "fields": [
+            {
+              "path": "$.trackingId",
+              "label": "Workload Tracking #",
+              "width": 12,
+              "fieldKey": "WORKLOAD_TRACKING_ID",
+              "component": "TRACKING_ID_DISPLAY"
+            },
+            {
+              "path": "$.shipPOCName",
+              "label": "Ship POC Name",
+              "width": 12,
+              "fieldKey": "SHIP_POC_NAME",
+              "component": "READ_ONLY_VALUE",
+              "fillFrom": "ASSIGNED_TO",
+              "splunkPolicy": {
+                "mode": "MASK",
+                "prefixChars": 1,
+                "suffixChars": 3,
+                "maskStrategy": "KEEP_PREFIX_SUFFIX"
+              },
+              "piiClassification": "PII"
+            },
+            {
+              "path": "$.shipDate",
+              "label": "Ship Date",
+              "width": 12,
+              "fieldKey": "SHIP_DATE",
+              "component": "DATE_INPUT"
+            },
+            {
+              "path": "$.shipTrackingNumber",
+              "label": "Ship Tracking #",
+              "width": 12,
+              "fieldKey": "SHIP_TRACKING_NUMBER",
+              "component": "TEXT_INPUT"
+            },
+            {
+              "path": "$.notes",
+              "label": "Notes",
+              "width": 12,
+              "fieldKey": "NOTES",
+              "component": "TEXT_AREA"
+            }
+          ],
+          "layout": "ONE_COLUMN",
+          "sectionKey": "SECTION"
+        }
+      ]
+    },
+    "I407_SHREDDING_DETAILS": {
+      "title": "Release",
+      "schema": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "shredDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "trackingId": {
+            "type": "string"
+          },
+          "shredPOCName": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "formKey": "I407_SHREDDING_DETAILS",
+      "dataPath": "$.shreddingDetails",
+      "sections": [
+        {
+          "title": "Section",
+          "fields": [
+            {
+              "path": "$.trackingId",
+              "label": "Workload Tracking #",
+              "width": 12,
+              "fieldKey": "WORKLOAD_TRACKING_ID",
+              "component": "TRACKING_ID_DISPLAY"
+            },
+            {
+              "path": "$.shredPOCName",
+              "label": "Shred POC Name",
+              "width": 12,
+              "fieldKey": "SHRED_POC_NAME",
+              "component": "READ_ONLY_VALUE",
+              "fillFrom": "ASSIGNED_TO",
+              "splunkPolicy": {
+                "mode": "MASK",
+                "prefixChars": 1,
+                "suffixChars": 3,
+                "maskStrategy": "KEEP_PREFIX_SUFFIX"
+              },
+              "piiClassification": "PII"
+            },
+            {
+              "path": "$.shredDate",
+              "label": "Shred Date",
+              "width": 12,
+              "fieldKey": "SHRED_DATE",
+              "component": "DATE_INPUT"
+            }
+          ],
+          "layout": "ONE_COLUMN",
+          "sectionKey": "SECTION"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "COMPLETE": {
+      "type": "TRANSITION",
+      "label": "Complete",
+      "actionKey": "COMPLETE",
+      "assignment": {
+        "clearOnTransition": true
+      },
+      "validation": {
+        "validateStageForm": true
+      },
+      "transitionSetKey": "FROM_DATA_ENTRY",
+      "requireAssignmentToCurrentUser": true
+    },
+    "RELEASE_ASSIGNMENT": {
+      "type": "RELEASE_ASSIGNMENT",
+      "label": "Release",
+      "actionKey": "RELEASE_ASSIGNMENT",
+      "validation": {
+        "validateStageForm": false
+      },
+      "requireAssignmentToCurrentUser": false
+    }
+  },
+  "queues": {
+    "READY_FOR_DATA_ENTRY": {
+      "actions": [
+        "ASSIGN_TO_SELF",
+        "RELEASE_TO_QUEUE"
+      ],
+      "columns": [
+        "trackingId",
+        "assignedTo",
+        "receiptNumber",
+        "firstName",
+        "lastName"
+      ],
+      "filters": [
+        "assignedStatus"
+      ],
+      "pageSize": 25,
+      "queueKey": "READY_FOR_DATA_ENTRY",
+      "entityType": "WORKLOAD",
+      "defaultSort": [
+        {
+          "field": "enteredStageAt",
+          "direction": "ASC"
+        }
+      ],
+      "displayName": "Ready for Data Entry",
+      "eligibility": {
+        "all": [
+          {
+            "field": "currentStageKey",
+            "value": "READY_FOR_DATA_ENTRY",
+            "source": "workflow",
+            "operator": "EQUALS"
+          }
+        ]
+      },
+      "projectedFields": [
+        {
+          "path": "$.dataEntryDetails.firstName",
+          "label": "Applicant First Name",
+          "fieldKey": "firstName"
+        },
+        {
+          "path": "$.dataEntryDetails.lastName",
+          "label": "Applicant Last Name",
+          "fieldKey": "lastName"
+        }
+      ]
+    },
+    "READY_FOR_SHIPPING": {
+      "actions": [
+        "ASSIGN_TO_SELF",
+        "RELEASE_TO_QUEUE"
+      ],
+      "columns": [
+        "trackingId",
+        "assignedTo",
+        "receiptNumber",
+        "firstName",
+        "lastName"
+      ],
+      "filters": [
+        "assignedStatus"
+      ],
+      "pageSize": 25,
+      "queueKey": "READY_FOR_SHIPPING",
+      "entityType": "WORKLOAD",
+      "defaultSort": [
+        {
+          "field": "enteredStageAt",
+          "direction": "ASC"
+        }
+      ],
+      "displayName": "Ready for Shipping",
+      "eligibility": {
+        "all": [
+          {
+            "field": "currentStageKey",
+            "value": "READY_FOR_SHIPPING",
+            "source": "workflow",
+            "operator": "EQUALS"
+          }
+        ]
+      },
+      "projectedFields": [
+        {
+          "path": "$.dataEntryDetails.firstName",
+          "label": "Applicant First Name",
+          "fieldKey": "firstName"
+        },
+        {
+          "path": "$.dataEntryDetails.lastName",
+          "label": "Applicant Last Name",
+          "fieldKey": "lastName"
+        }
+      ]
+    },
+    "READY_FOR_SHREDDING": {
+      "actions": [
+        "ASSIGN_TO_SELF",
+        "RELEASE_TO_QUEUE"
+      ],
+      "columns": [
+        "trackingId",
+        "assignedTo",
+        "receiptNumber",
+        "firstName",
+        "lastName"
+      ],
+      "filters": [
+        "assignedStatus"
+      ],
+      "pageSize": 25,
+      "queueKey": "READY_FOR_SHREDDING",
+      "entityType": "WORKLOAD",
+      "defaultSort": [
+        {
+          "field": "enteredStageAt",
+          "direction": "ASC"
+        }
+      ],
+      "displayName": "Ready For Shredding",
+      "eligibility": {
+        "all": [
+          {
+            "field": "currentStageKey",
+            "value": "READY_FOR_SHREDDING",
+            "source": "workflow",
+            "operator": "EQUALS"
+          }
+        ]
+      },
+      "projectedFields": [
+        {
+          "path": "$.dataEntryDetails.firstName",
+          "label": "Applicant First Name",
+          "fieldKey": "firstName"
+        },
+        {
+          "path": "$.dataEntryDetails.lastName",
+          "label": "Applicant Last Name",
+          "fieldKey": "lastName"
+        }
+      ]
+    }
+  },
+  "bulkActions": {},
+  "scheduledActions": {},
+  "slas": {},
+  "search": {
+    "searchKey": "DEFAULT",
+    "fields": []
+  }
+}

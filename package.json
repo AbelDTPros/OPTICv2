@@ -1,0 +1,39 @@
+{
+  "name": "optic-nextgen",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "OPTIC Next-Generation Configurable Workflow Platform",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "migrate": "tsx src/platform/db/migrate.ts",
+    "seed:bulk": "tsx src/platform/db/seed-bulk-demo.ts",
+    "seed:i407": "tsx src/platform/db/seed-i407-demo.ts",
+    "lint": "tsc --noEmit --project tsconfig.json && tsc --noEmit --project tsconfig.test.json && npm --prefix web run lint",
+    "test": "vitest run && npm --prefix web test",
+    "dev:web": "npm --prefix web run dev",
+    "test:watch": "vitest",
+    "test:mysql": "TEST_DATABASE_URL=mysql://root:optic_root@127.0.0.1:3307/mysql vitest run tests/repository"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "express": "^4.21.2",
+    "mysql2": "^3.14.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.13.10",
+    "@types/supertest": "^6.0.3",
+    "supertest": "^7.1.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  }
+}

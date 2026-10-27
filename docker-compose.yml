@@ -1,0 +1,23 @@
+services:
+  mysql:
+    image: mysql:9.7.2
+    environment:
+      MYSQL_DATABASE: optic_nextgen
+      MYSQL_USER: optic
+      MYSQL_PASSWORD: optic
+      MYSQL_ROOT_PASSWORD: optic_root
+      # Local single-user setup. Non-local API accounts must not receive
+      # UPDATE/DELETE on audit_event (append-only).
+    ports:
+      - "3307:3306"
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-poptic_root"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - optic_mysql_data:/var/lib/mysql
+
+volumes:
+  optic_mysql_data:

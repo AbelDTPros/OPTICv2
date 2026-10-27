@@ -1,0 +1,6542 @@
+:root {
+  --optic-font: "Public Sans", "Source Sans 3", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --optic-navy: #0c2340;
+  --optic-navy-mid: #16345c;
+  --optic-ink: #1b2b3c;
+  --optic-muted: #4a5d70;
+  --optic-line: #d5deea;
+  --optic-line-soft: #e6edf5;
+  --optic-page: #f2f5f9;
+  --optic-page-accent: #d4e4f6;
+  --optic-surface: #ffffff;
+  --optic-field: #f7f9fc;
+  --optic-primary: #0b5cab;
+  --optic-primary-hover: #084a8a;
+  --optic-focus: #0b5cab;
+  --optic-focus-glow: #f5d56b;
+  --optic-gold: #c9a227;
+  --optic-danger: #8b1538;
+  --optic-danger-bg: #fdecee;
+  --optic-warn-bg: #fff6dc;
+  --optic-warn: #8a5a00;
+  --optic-success: #0f5c3a;
+  --optic-radius: 12px;
+  --optic-radius-sm: 8px;
+  --optic-shadow: 0 12px 36px rgba(12, 35, 64, 0.06);
+  --optic-shadow-soft: 0 2px 0 rgba(12, 35, 64, 0.03);
+  --optic-space: 1.25rem;
+  color: var(--optic-ink);
+  background: var(--optic-page);
+  font-family: var(--optic-font);
+  line-height: 1.55;
+  font-size: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(900px 380px at 8% -12%, var(--optic-page-accent), transparent 58%),
+    radial-gradient(700px 280px at 100% 0%, #eef3f9, transparent 50%),
+    var(--optic-page);
+}
+
+.optic-app {
+  min-height: 100vh;
+}
+
+.optic-skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 30;
+  padding: 0.5rem 0.9rem;
+  background: var(--optic-surface);
+  color: var(--optic-navy);
+  font-weight: 700;
+  border-radius: var(--optic-radius-sm);
+  transform: translateY(-180%);
+}
+
+.optic-skip-link:focus {
+  transform: none;
+  outline: 3px solid var(--optic-focus-glow);
+  outline-offset: 3px;
+}
+
+.optic-shell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.75rem;
+  padding: 0.95rem 1.75rem 1rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 42%),
+    var(--optic-navy);
+  color: #fff;
+  border-bottom: 3px solid var(--optic-focus-glow);
+}
+
+.optic-shell-brand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 12rem;
+}
+
+.optic-shell-mark {
+  width: 0.65rem;
+  height: 2.15rem;
+  flex: 0 0 auto;
+  border-radius: 2px;
+  background: var(--optic-focus-glow);
+  box-shadow: none;
+}
+
+.optic-shell-wordmark {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.4rem;
+  row-gap: 0.1rem;
+}
+
+.optic-banner-product {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+}
+
+.optic-banner-product-sub {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 550;
+  letter-spacing: 0.04em;
+  color: #c5d6ea;
+  line-height: 1.1;
+}
+
+.optic-banner-context {
+  margin: 0;
+  flex: 1 0 100%;
+  color: #a9bdd6;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+main {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3.5rem;
+}
+
+main.optic-main-wide {
+  max-width: 96rem;
+}
+
+main:focus-visible {
+  outline: 3px solid var(--optic-focus);
+  outline-offset: 4px;
+}
+
+.optic-demo-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: var(--optic-radius-sm);
+}
+
+.optic-demo-nav button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.4rem;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #d7e3f4;
+  font: inherit;
+  font-weight: 600;
+}
+
+.optic-demo-nav button[aria-current='page'] {
+  background: var(--optic-surface);
+  color: var(--optic-navy);
+  box-shadow: 0 1px 0 rgba(12, 35, 64, 0.08);
+}
+
+.optic-demo-nav button:focus,
+.optic-demo-nav button:focus-visible {
+  outline: 3px solid var(--optic-focus-glow);
+  outline-offset: 2px;
+}
+
+.optic-form {
+  background: var(--optic-surface);
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  box-shadow: var(--optic-shadow);
+  padding: 2rem 2rem 2.25rem;
+}
+
+.optic-form-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.85rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--optic-line);
+}
+
+.optic-form-header h1,
+.optic-form-header h2,
+.optic-queue h1,
+.optic-designer h1 {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--optic-navy);
+}
+
+.optic-form-key {
+  margin: 0.35rem 0 0;
+  color: var(--optic-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.optic-section {
+  margin: 0 0 1.5rem;
+  padding: 1.35rem 1.35rem 1.5rem;
+  background: var(--optic-field);
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+}
+
+.optic-section h2,
+.optic-section h3 {
+  margin: 0 0 1.1rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--optic-navy);
+}
+
+.optic-fields {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 1.15rem 1.35rem;
+  align-items: start;
+}
+
+.optic-field {
+  grid-column: span 12;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.optic-field[data-width='6'] {
+  grid-column: span 6;
+}
+
+/* Keep the control row aligned with neighboring text inputs in two-column layout. */
+.optic-field > input[type='checkbox'].optic-checkbox-input {
+  width: 1.15rem;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  min-height: 1.15rem;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  flex: 0 0 auto;
+  align-self: start;
+}
+
+.optic-repeating-section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.optic-repeating-item {
+  margin: 0;
+  padding: 0.85rem 1rem 1rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+}
+
+.optic-repeating-item legend {
+  padding: 0 0.3rem;
+  font-weight: 700;
+  color: var(--optic-navy);
+}
+
+.optic-repeating-item-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.7rem;
+}
+
+.optic-repeating-section > .optic-button-primary {
+  justify-self: start;
+}
+
+label,
+.optic-field-legend {
+  font-weight: 650;
+  color: var(--optic-navy-mid);
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+}
+
+.optic-required {
+  color: var(--optic-danger);
+  font-weight: 700;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: 2.75rem;
+  font: inherit;
+  color: var(--optic-ink);
+  padding: 0.6rem 0.85rem;
+  background: var(--optic-surface);
+  border: 1px solid #8a98a8;
+  border-radius: var(--optic-radius-sm);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  width: 1.15rem;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  min-height: 1.15rem;
+  padding: 0;
+  accent-color: var(--optic-primary);
+}
+
+textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--optic-navy-mid);
+}
+
+.optic-field[data-invalid='true'] input,
+.optic-field[data-invalid='true'] select,
+.optic-field[data-invalid='true'] textarea {
+  border-color: var(--optic-danger);
+  background: var(--optic-danger-bg);
+}
+
+.optic-field[data-readonly='true'] input,
+.optic-field[data-readonly='true'] select,
+.optic-field[data-readonly='true'] textarea {
+  background: #eef2f6;
+  color: #243447;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+a:focus,
+.optic-error-summary:focus {
+  outline: 3px solid var(--optic-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--optic-focus-glow);
+}
+
+.optic-help,
+.optic-error,
+.optic-readonly {
+  margin: 0;
+}
+
+.optic-help {
+  color: var(--optic-muted);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.optic-error,
+.optic-error-summary {
+  color: var(--optic-danger);
+}
+
+.optic-error {
+  font-weight: 600;
+}
+
+.optic-error-summary {
+  background: var(--optic-danger-bg);
+  border: 1px solid var(--optic-danger);
+  border-left-width: 6px;
+  border-radius: var(--optic-radius-sm);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.optic-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  display: block;
+}
+
+.optic-error-summary h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+}
+
+.optic-empty-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--optic-muted);
+  font-weight: 600;
+}
+
+.optic-error-summary p,
+.optic-error-summary ul {
+  margin: 0.35rem 0 0;
+}
+
+.optic-error-summary a {
+  color: var(--optic-danger);
+  font-weight: 600;
+}
+
+.optic-checkbox,
+.optic-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 500;
+}
+
+.optic-checkbox input,
+.optic-radio input {
+  width: 1.15rem;
+  height: 1.15rem;
+  min-height: 1.15rem;
+}
+
+.optic-readonly {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  padding: 0.55rem 0.75rem;
+  background: #eef2f6;
+  border: 1px dashed #7d8b99;
+  border-radius: var(--optic-radius-sm);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.optic-alert {
+  background: var(--optic-warn-bg);
+  border: 1px solid #e0c36a;
+  border-left: 6px solid var(--optic-warn);
+  border-radius: var(--optic-radius-sm);
+  color: var(--optic-ink);
+  padding: 0.95rem 1.1rem;
+}
+
+.optic-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.optic-queue {
+  background: var(--optic-surface);
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  box-shadow: var(--optic-shadow);
+  padding: 1.75rem 1.85rem 2rem;
+}
+
+.optic-queue-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.15rem;
+  border-bottom: 1px solid var(--optic-line);
+}
+
+.optic-queue-count {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  color: var(--optic-muted);
+  font-weight: 600;
+}
+
+.optic-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  min-height: 1.55rem;
+  padding: 0 0.45rem;
+  border-radius: 4px;
+  background: var(--optic-navy);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.optic-queue-filters {
+  margin-bottom: 1.35rem;
+}
+
+/* Invisible twin of the filter bar — keeps the table top stable across queues. */
+.optic-queue-filters--empty {
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.optic-search-form {
+  margin-bottom: 1.35rem;
+  display: grid;
+  grid-template-columns:
+    minmax(11rem, 1.3fr) minmax(10rem, 1.1fr) minmax(7rem, 0.75fr) minmax(9rem, 1fr) minmax(9rem, 1fr) auto;
+  gap: 1rem 1.15rem;
+  align-items: end;
+  padding: 1.1rem 1.15rem 1.2rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  background: var(--optic-field);
+}
+
+.optic-queue-filters fieldset {
+  margin: 0;
+  padding: 1.1rem 1.15rem 1.2rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  background: var(--optic-field);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  align-items: stretch;
+}
+
+.optic-search-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.optic-queue-filters legend {
+  font-weight: 700;
+  padding: 0 0.35rem;
+}
+
+.optic-queue-filter-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 16rem));
+  gap: 1rem 1.15rem;
+  align-items: end;
+}
+
+.optic-queue-filter-row .optic-field,
+.optic-bulk-action-row .optic-field {
+  grid-column: auto;
+}
+
+.optic-queue-section-label {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--optic-navy);
+}
+
+.optic-queue-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+}
+
+.optic-queue-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.optic-queue-table caption {
+  caption-side: top;
+  text-align: left;
+  padding: 0.85rem 1rem 0.5rem;
+  font-weight: 600;
+  color: var(--optic-muted);
+}
+
+.optic-queue-table th,
+.optic-queue-table td {
+  text-align: left;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--optic-line);
+  vertical-align: middle;
+}
+
+.optic-queue-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.optic-queue-table tbody tr:hover {
+  background: #f4f8fd;
+}
+
+.optic-queue-table tbody tr.optic-queue-row-clickable {
+  cursor: pointer;
+}
+
+.optic-queue-tracking-open {
+  appearance: none;
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--optic-primary);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.16em;
+  cursor: pointer;
+}
+
+.optic-queue-tracking-open:hover {
+  color: var(--optic-primary-hover);
+}
+
+.optic-queue-tracking-open:focus-visible {
+  outline: 3px solid var(--optic-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.optic-queue-table tbody tr.optic-queue-row-open {
+  background: #eaf3fb;
+  box-shadow: inset 3px 0 0 var(--optic-navy);
+}
+
+.optic-queue-table tbody tr.optic-queue-row-open .optic-queue-tracking {
+  color: var(--optic-navy);
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18em;
+}
+
+.optic-queue-table th {
+  color: var(--optic-navy);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--optic-field);
+}
+
+/* Keep header row height stable when queues swap wide vs narrow column sets. */
+.optic-workspace-main .optic-queue-table thead th {
+  white-space: nowrap;
+  height: 3.1rem;
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+.optic-queue-table .optic-queue-select {
+  width: 3rem;
+  text-align: center;
+  padding-left: 0.85rem;
+  padding-right: 0.55rem;
+}
+
+.optic-queue-table .optic-queue-index {
+  width: 2.75rem;
+  text-align: right;
+  padding-left: 0.65rem;
+  padding-right: 0.55rem;
+  color: var(--optic-muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.optic-queue-table .optic-queue-select input {
+  display: block;
+  margin: 0 auto;
+}
+
+.optic-queue-table .optic-queue-actions {
+  width: 1%;
+  white-space: nowrap;
+  vertical-align: middle;
+  padding: 0.4rem 0.55rem;
+}
+
+.optic-queue-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.optic-queue-row-actions {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid var(--optic-line);
+  border-radius: 0.5rem;
+  background: #f7f9fc;
+  overflow: hidden;
+}
+
+.optic-queue-actions-empty {
+  color: var(--optic-muted);
+  font-size: 0.85rem;
+}
+
+.optic-queue-pager button,
+.optic-button-row button,
+.optic-designer-open-action-group button,
+.optic-search-form button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.optic-queue-pager button,
+.optic-button-row button,
+.optic-designer-toolbar button,
+.optic-designer-open button,
+.optic-designer-palette button,
+.optic-designer-field-actions button,
+.optic-designer-behaviors button,
+.optic-designer-transitions button,
+.optic-rule-editor button,
+.optic-search-form button,
+.optic-bulk-action button,
+.optic-catalog-list-header button,
+.optic-catalog-footer button,
+.optic-workflow-node {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--optic-primary);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  color: var(--optic-primary);
+  font: inherit;
+  font-weight: 600;
+}
+
+.optic-queue-pager button:hover:not(:disabled),
+.optic-button-row button:hover:not(:disabled),
+.optic-designer-toolbar button:hover:not(:disabled),
+.optic-designer-open button:hover:not(:disabled),
+.optic-catalog-list-header button:hover:not(:disabled),
+.optic-catalog-footer button:hover:not(:disabled) {
+  background: #eaf3fb;
+}
+
+.optic-button-primary {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 1.15rem;
+  border: 1px solid var(--optic-primary);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-primary);
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(12, 35, 64, 0.12);
+}
+
+.optic-button-save-clean {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 1.05rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  color: #4b5b6b;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.optic-designer-header-tools .optic-button-save-clean,
+.optic-catalog-footer .optic-button-save-clean {
+  min-height: 2.5rem;
+}
+
+.optic-button-save-clean:disabled {
+  background: #e8eef4;
+  border-color: #d5dde6;
+  color: #4b5b6b;
+  cursor: not-allowed;
+}
+
+.optic-button-row .optic-button-primary,
+.optic-designer-toolbar .optic-button-primary,
+.optic-designer-open .optic-button-primary,
+.optic-search-form .optic-button-primary,
+.optic-bulk-action button {
+  background: var(--optic-primary);
+  color: #fff;
+}
+
+.optic-button-primary:hover:not(:disabled),
+.optic-button-row .optic-button-primary:hover:not(:disabled),
+.optic-designer-toolbar .optic-button-primary:hover:not(:disabled),
+.optic-designer-open .optic-button-primary:hover:not(:disabled),
+.optic-search-form .optic-button-primary:hover:not(:disabled),
+.optic-bulk-action button:hover:not(:disabled) {
+  background: var(--optic-primary-hover);
+  border-color: var(--optic-primary-hover);
+  color: #fff;
+}
+
+.optic-queue-pager button:disabled,
+.optic-button-row button:disabled,
+.optic-designer-open button:disabled,
+.optic-designer-toolbar button:disabled,
+.optic-designer-palette button:disabled,
+.optic-button-primary:disabled,
+.optic-search-form button:disabled,
+.optic-bulk-action button:disabled {
+  background: #e8eef4;
+  border-color: #d5dde6;
+  color: #4b5b6b;
+  cursor: not-allowed;
+}
+
+.optic-queue-pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.85rem;
+  margin-top: 1.15rem;
+}
+
+.optic-queue-pager p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.optic-bulk-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 1.15rem 0 0;
+  padding: 1.1rem 1.2rem 1.2rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  background: var(--optic-field);
+}
+
+.optic-bulk-toolbar-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.optic-bulk-count {
+  margin: 0;
+  font-weight: 700;
+  color: var(--optic-muted);
+}
+
+.optic-bulk-action {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.optic-bulk-action-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) auto;
+  gap: 0.85rem 1rem;
+  align-items: end;
+}
+
+.optic-bulk-action-row .optic-field {
+  margin: 0;
+}
+
+.optic-search-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.optic-search-form > button,
+.optic-search-form > .optic-search-actions {
+  justify-self: start;
+}
+
+.optic-bulk-action button {
+  min-height: 2.75rem;
+}
+
+.optic-queue-row-actions .optic-queue-action {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  min-width: 2rem;
+  height: 1.95rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--optic-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--optic-navy-mid);
+  cursor: pointer;
+}
+
+.optic-queue-row-actions .optic-queue-action:last-child {
+  border-right: 0;
+}
+
+.optic-queue-row-actions .optic-queue-action:hover:not(:disabled) {
+  background: #eef3f9;
+  color: var(--optic-navy);
+}
+
+.optic-queue-row-actions .optic-queue-action:focus-visible {
+  outline: 3px solid var(--optic-focus);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.optic-queue-row-actions .optic-queue-action:disabled {
+  color: #8a98a8;
+  cursor: not-allowed;
+}
+
+.optic-queue-row-actions .optic-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  opacity: 0.9;
+}
+
+.optic-reassign button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 1.95rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--optic-line);
+  border-radius: 0.45rem;
+  background: var(--optic-surface);
+  color: var(--optic-navy-mid);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.optic-reassign button:hover:not(:disabled) {
+  background: #eef3f9;
+  border-color: #c5d0de;
+  color: var(--optic-navy);
+}
+
+.optic-reassign button:disabled {
+  color: #8a98a8;
+  cursor: not-allowed;
+}
+
+.optic-reassign .optic-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.optic-bulk-result {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.15rem;
+  border-left: 4px solid var(--optic-success);
+  background: #eef8f2;
+  border-radius: var(--optic-radius-sm);
+}
+
+.optic-bulk-result h2,
+.optic-bulk-result p,
+.optic-bulk-result ul {
+  margin: 0 0 0.4rem;
+}
+
+button:focus,
+button:focus-visible,
+.optic-queue-sort:focus,
+.optic-queue-sort:focus-visible {
+  outline: 3px solid var(--optic-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--optic-focus-glow);
+}
+
+.optic-designer-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 1.85rem;
+  --optic-control-height: 2.75rem;
+}
+
+.optic-designer {
+  --optic-control-height: 2.75rem;
+}
+
+.optic-designer-workspace input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']),
+.optic-designer-workspace select,
+.optic-designer input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='file']):not([type='submit']):not([type='button']):not([type='reset']),
+.optic-designer select {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  height: var(--optic-control-height);
+  min-height: var(--optic-control-height);
+  padding: 0.5rem 0.85rem;
+  line-height: 1.25;
+  border: 1px solid #8a98a8;
+  border-radius: var(--optic-radius-sm);
+  background-color: var(--optic-surface);
+}
+
+.optic-designer-workspace select,
+.optic-designer select {
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%234a5d70' d='M1.2 1.5 6 6.3 10.8 1.5 12 2.7 6 8.7 0 2.7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.8rem 0.5rem;
+}
+
+.optic-designer-workspace select:disabled,
+.optic-designer select:disabled {
+  background-color: #eef2f6;
+}
+
+.optic-designer-workspace textarea,
+.optic-designer textarea {
+  height: auto;
+  min-height: 7rem;
+  padding: 0.6rem 0.85rem;
+}
+
+.optic-designer-open {
+  padding: 1.6rem 1.7rem 1.45rem;
+  background: var(--optic-surface);
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  box-shadow: var(--optic-shadow);
+}
+
+.optic-designer-open-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.optic-designer-open-grid legend {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--optic-navy);
+  margin-bottom: 0.15rem;
+}
+
+.optic-designer-open-identity,
+.optic-designer-open-toolbar {
+  display: grid;
+  gap: 0.85rem 1rem;
+  align-items: end;
+}
+
+.optic-designer-open-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.85rem 1.25rem;
+}
+
+.optic-designer-open-header .optic-help {
+  margin: 0;
+  max-width: 36rem;
+}
+
+.optic-designer-open-identity {
+  grid-template-columns: minmax(10.5rem, 1.1fr) minmax(14rem, 1.5fr) minmax(8.5rem, 0.9fr) 7.75rem minmax(14rem, 1.5fr);
+}
+
+.optic-designer-open-toolbar {
+  grid-template-columns: minmax(16rem, 1fr) auto;
+}
+
+.optic-designer-open-identity > *,
+.optic-designer-open-toolbar > * {
+  min-width: 0;
+}
+
+.optic-designer-open-action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: end;
+}
+
+.optic-designer-open-action-group button {
+  white-space: nowrap;
+  min-height: 2.75rem;
+}
+
+.optic-designer-open-forms {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--optic-line);
+}
+
+.optic-designer-open-section-label {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--optic-navy);
+}
+
+.optic-designer-open-clone-help {
+  margin: 0;
+  max-width: 48rem;
+}
+
+.optic-designer-open-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.85rem;
+  margin-top: 1.35rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid var(--optic-line);
+}
+
+.optic-designer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1.15rem 2rem;
+  padding: 0.95rem 1.2rem 1.1rem;
+  background: var(--optic-surface);
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  box-shadow: var(--optic-shadow);
+}
+
+.optic-designer-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.optic-designer-nav-help {
+  margin-left: auto;
+}
+
+.optic-guide-button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 3rem;
+  padding: 0.45rem 1.05rem;
+  border: 1px solid var(--optic-primary);
+  border-radius: var(--optic-radius-sm);
+  background: #e8f1fb;
+  color: var(--optic-primary);
+  font: inherit;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(12, 35, 64, 0.08);
+}
+
+.optic-guide-button:hover {
+  background: var(--optic-primary);
+  color: #fff;
+}
+
+.optic-guide-button:focus-visible {
+  outline: 2px solid var(--optic-primary);
+  outline-offset: 2px;
+}
+
+.optic-designer-nav .optic-guide-button {
+  min-height: 3.1rem;
+}
+
+.optic-designer-nav-label {
+  margin: 0 0.15rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--optic-muted);
+}
+
+.optic-designer-nav .optic-designer-view-toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.95rem;
+}
+
+.optic-designer-nav .optic-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+@media (max-width: 70rem) {
+  .optic-designer-open-identity {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .optic-designer-open-identity .optic-designer-open-action-group,
+  .optic-designer-open-toolbar .optic-designer-open-action-group {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 40rem) {
+  .optic-designer-open-identity,
+  .optic-designer-open-toolbar,
+  .optic-designer-open-dialog-tools {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.optic-designer-open-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(17, 28, 45, 0.45);
+}
+
+.optic-designer-open-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: min(40rem, 100%);
+  max-height: min(36rem, calc(100vh - 2.5rem));
+  padding: 1.05rem 1.15rem 1.2rem;
+  overflow: auto;
+  background: var(--optic-surface);
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  box-shadow: var(--optic-shadow);
+}
+
+.optic-designer-open-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.optic-designer-open-picker-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--optic-navy);
+}
+
+.optic-designer-open-picker-header h2:focus-visible {
+  outline: 3px solid var(--optic-focus);
+  outline-offset: 2px;
+}
+
+.optic-designer-open-dialog-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(8rem, 0.8fr);
+  gap: 0.7rem 0.85rem;
+}
+
+.optic-designer-open-groups,
+.optic-designer-open-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.optic-designer-open-groups {
+  gap: 0.85rem;
+}
+
+.optic-designer-open-group-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem 0.7rem;
+  margin: 0 0 0.4rem;
+  color: var(--optic-navy);
+}
+
+.optic-designer-open-choice-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.optic-designer-open-choice {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.7rem 0.85rem;
+  text-align: left;
+  background: var(--optic-surface);
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  box-shadow: none;
+}
+
+.optic-designer-open-choice:hover,
+.optic-designer-open-choice:focus-visible {
+  border-color: var(--optic-primary);
+}
+
+.optic-designer-open-choice[data-selected='true'] {
+  border-color: var(--optic-primary);
+  background: #eaf3fb;
+}
+
+.optic-designer-open-picker-field {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.7rem 0.4rem 0.85rem;
+  text-align: left;
+  background: var(--optic-surface);
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.optic-designer-open-picker-field:hover,
+.optic-designer-open-picker-field:focus-visible {
+  border-color: var(--optic-primary);
+}
+
+.optic-designer-open-picker-field-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.optic-designer-open-picker-field-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--optic-navy);
+  font-size: 0.92rem;
+}
+
+.optic-designer-open-picker-field-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--optic-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.optic-designer-open-picker-field .optic-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.optic-designer-open-choice-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.optic-designer-open-choice-copy strong {
+  color: var(--optic-navy);
+}
+
+.optic-designer-open-choice-copy span {
+  color: var(--optic-muted);
+  font-size: 0.85rem;
+}
+
+.optic-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  max-width: 46rem;
+}
+
+.optic-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 1.6rem;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: #e4edf8;
+  color: var(--optic-navy);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.optic-designer {
+  background: var(--optic-surface);
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  box-shadow: var(--optic-shadow);
+  padding: 1.75rem 1.85rem 2rem;
+}
+
+.optic-designer-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.15rem;
+  border-bottom: 1px solid var(--optic-line);
+}
+
+.optic-admin-workspace {
+  display: grid;
+  grid-template-columns: 13.5rem minmax(0, 1fr);
+  gap: 0;
+  align-items: stretch;
+  min-height: calc(100vh - 7.5rem);
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  background: var(--optic-surface);
+  box-shadow: var(--optic-shadow-soft);
+  overflow: hidden;
+}
+
+.optic-admin-sidebar {
+  padding: 1rem 0.75rem 1.25rem;
+  background:
+    linear-gradient(180deg, rgba(12, 35, 64, 0.04), transparent 8rem),
+    var(--optic-field);
+  border-right: 1px solid var(--optic-line);
+}
+
+.optic-admin-sidebar-kicker {
+  margin: 0 0.55rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--optic-muted);
+}
+
+.optic-admin-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.optic-admin-sidebar-nav button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: var(--optic-radius-sm);
+  background: transparent;
+  color: var(--optic-ink);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.optic-admin-sidebar-nav button:hover {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: var(--optic-line-soft);
+}
+
+.optic-admin-sidebar-nav button[aria-current='page'] {
+  background: var(--optic-surface);
+  border-color: var(--optic-line);
+  color: var(--optic-navy);
+  box-shadow: var(--optic-shadow-soft);
+}
+
+.optic-admin-sidebar-nav .optic-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.optic-admin-content {
+  min-width: 0;
+  padding: 1rem 1.15rem 1.35rem;
+  background: var(--optic-surface);
+}
+
+.optic-admin-coming-soon-panel {
+  padding: 1rem 1.1rem;
+  border: 1px dashed var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-field);
+}
+
+.optic-admin-coming-soon-title {
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+  color: var(--optic-navy);
+}
+
+.optic-admin-features {
+  max-width: none;
+  width: 100%;
+}
+
+.optic-admin-audit-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-field);
+}
+
+.optic-admin-audit-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--optic-muted);
+}
+
+.optic-admin-audit-filters input,
+.optic-admin-audit-filters select {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  height: 2.15rem;
+  min-height: 2.15rem;
+  box-sizing: border-box;
+  padding: 0.35rem 0.55rem;
+  line-height: 1.25;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background-color: var(--optic-surface);
+  color: var(--optic-ink);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.optic-admin-audit-filters select {
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%234a5d70' d='M1.2 1.5 6 6.3 10.8 1.5 12 2.7 6 8.7 0 2.7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 0.75rem 0.45rem;
+}
+
+.optic-admin-audit-filter-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.optic-admin-audit-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(16rem, 1fr);
+  gap: 0.85rem;
+  align-items: start;
+}
+
+.optic-admin-audit-table td,
+.optic-admin-audit-table th {
+  font-size: 0.88rem;
+}
+
+.optic-admin-audit-type {
+  font-size: 0.78rem;
+}
+
+.optic-admin-audit-entity {
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optic-admin-audit-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 0.75rem;
+}
+
+.optic-admin-audit-page-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--optic-muted);
+}
+
+.optic-admin-audit-page-size select {
+  min-height: 2.1rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  color: var(--optic-ink);
+  font: inherit;
+}
+
+.optic-admin-audit-count {
+  margin: 0;
+  flex: 1 1 auto;
+}
+
+.optic-admin-audit-pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.optic-admin-audit-page-label {
+  min-width: 7rem;
+  text-align: center;
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--optic-navy);
+}
+
+.optic-admin-audit-detail {
+  position: sticky;
+  top: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-field);
+  max-height: calc(100vh - 10rem);
+  overflow: auto;
+}
+
+.optic-admin-audit-detail-title {
+  margin: 0 0 0.65rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--optic-navy);
+  word-break: break-word;
+}
+
+.optic-admin-audit-dl {
+  margin: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.optic-admin-audit-dl > div {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 0.4rem 0.65rem;
+  font-size: 0.86rem;
+}
+
+.optic-admin-audit-dl dt {
+  margin: 0;
+  color: var(--optic-muted);
+  font-weight: 650;
+}
+
+.optic-admin-audit-dl dd {
+  margin: 0;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.optic-admin-audit-hash {
+  font-size: 0.72rem;
+}
+
+.optic-admin-audit-payload-heading {
+  margin: 0.9rem 0 0.35rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.optic-admin-audit-payload {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  overflow: auto;
+  max-height: 18rem;
+}
+
+@media (max-width: 64rem) {
+  .optic-admin-audit-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .optic-admin-audit-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .optic-admin-audit-detail {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 52rem) {
+  .optic-admin-workspace {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .optic-admin-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--optic-line);
+    padding-bottom: 0.75rem;
+  }
+
+  .optic-admin-sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .optic-admin-sidebar-nav button {
+    width: auto;
+  }
+}
+
+.optic-admin-features-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.85rem;
+}
+
+.optic-admin-feature-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem 1rem;
+  align-items: start;
+}
+
+.optic-admin-feature-group {
+  margin: 0;
+  padding: 0.7rem 0.85rem 0.55rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  box-shadow: var(--optic-shadow-soft);
+}
+
+.optic-admin-feature-group-title {
+  margin: 0 0 0.35rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--optic-line-soft);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--optic-navy);
+}
+
+.optic-admin-feature-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.optic-admin-feature-row {
+  display: flex;
+  gap: 0.65rem 0.85rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0.55rem 0.15rem;
+  border: none;
+  border-bottom: 1px solid var(--optic-line-soft);
+  border-radius: 0;
+  background: transparent;
+}
+
+.optic-admin-feature-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0.2rem;
+}
+
+.optic-admin-feature-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.optic-admin-feature-label {
+  margin: 0;
+  font-weight: 650;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.optic-admin-feature-desc {
+  margin: 0.15rem 0 0;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.optic-admin-feature-key {
+  margin: 0.2rem 0 0;
+  font-weight: 500;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  color: var(--optic-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 52rem) {
+  .optic-admin-feature-groups {
+    grid-template-columns: 1fr;
+  }
+}
+
+.optic-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.2rem;
+  border: none;
+  background: transparent;
+  color: var(--optic-muted);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 650;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.optic-switch-track {
+  position: relative;
+  display: block;
+  width: 2.75rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  background: #c5d0de;
+  box-shadow: inset 0 0 0 1px rgba(12, 35, 64, 0.08);
+  transition: background-color 160ms ease;
+}
+
+.optic-switch-thumb {
+  position: absolute;
+  top: 0.18rem;
+  left: 0.18rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  background: var(--optic-surface);
+  box-shadow: 0 1px 2px rgba(12, 35, 64, 0.22);
+  transition: transform 160ms ease;
+}
+
+.optic-switch[aria-checked='true'] {
+  color: var(--optic-navy);
+}
+
+.optic-switch[aria-checked='true'] .optic-switch-track {
+  background: var(--optic-primary);
+  box-shadow: inset 0 0 0 1px rgba(12, 35, 64, 0.12);
+}
+
+.optic-switch[aria-checked='true'] .optic-switch-thumb {
+  transform: translateX(1.2rem);
+}
+
+.optic-switch:focus-visible {
+  outline: none;
+}
+
+.optic-switch:focus-visible .optic-switch-track {
+  outline: 2px solid var(--optic-focus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--optic-focus-glow) 70%, transparent);
+}
+
+.optic-switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.optic-switch-state {
+  min-width: 1.6rem;
+}
+
+.optic-designer-header-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem 1rem;
+}
+
+.optic-designer-header-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+  padding: 0.25rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-field);
+}
+
+.optic-designer-header-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.15rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid transparent;
+  border-radius: calc(var(--optic-radius-sm) - 1px);
+  background: transparent;
+  color: var(--optic-navy-mid);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.optic-designer-header-actions button:hover:not(:disabled) {
+  background: var(--optic-surface);
+  border-color: #cfd9e6;
+  color: var(--optic-navy);
+}
+
+.optic-designer-header-actions button:disabled {
+  background: transparent;
+  border-color: transparent;
+  color: #8a98a8;
+  cursor: not-allowed;
+}
+
+.optic-designer-header-actions .optic-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.optic-designer-header-tools .optic-button-primary {
+  min-height: 2.5rem;
+}
+
+.optic-designer-header .optic-help {
+  margin-top: 0.45rem;
+  max-width: 42rem;
+}
+
+.optic-designer-toolbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13.5rem), 1fr));
+  gap: 1.15rem 1.35rem;
+  align-items: end;
+  margin-bottom: 1.15rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.optic-designer-toolbar > * {
+  min-width: 0;
+}
+
+.optic-designer-toolbar input,
+.optic-designer-toolbar select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.optic-designer-header .optic-designer-toolbar {
+  margin: 0;
+  flex: 1 1 22rem;
+}
+
+.optic-designer-toolbar label,
+.optic-designer-properties label,
+.optic-designer-open-grid label,
+.optic-designer-behavior label,
+.optic-designer-transitions label,
+.optic-rule-editor label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.optic-designer-toolbar label:has(> input[type='checkbox']),
+.optic-designer-behavior label:has(> input[type='checkbox']),
+.optic-designer-behavior .optic-checkbox,
+.optic-designer-transitions label:has(> input[type='checkbox']) {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+}
+
+.optic-key-checklist {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.7rem 0.85rem 0.85rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+}
+
+.optic-key-checklist legend {
+  padding: 0 0.25rem;
+  font-weight: 600;
+  color: var(--optic-navy);
+}
+
+.optic-designer-choice-list {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0.7rem 0.85rem 0.9rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+}
+
+.optic-designer-choice-list legend {
+  padding: 0 0.25rem;
+  font-weight: 600;
+  color: var(--optic-navy);
+}
+
+.optic-designer-choice-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.optic-designer-choice-row[data-layout='projected'] {
+  grid-template-columns: minmax(7rem, 0.85fr) minmax(8rem, 1fr) minmax(10rem, 1.4fr) auto;
+  align-items: end;
+}
+
+.optic-catalog-projected {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.optic-catalog-projected-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto;
+  gap: 0.65rem 0.75rem;
+  align-items: start;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+}
+
+.optic-catalog-projected-actions > label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  font-weight: inherit;
+}
+
+.optic-catalog-projected-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.optic-catalog-projected-actions button,
+.optic-catalog-projected-footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--optic-primary);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  color: var(--optic-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.optic-catalog-projected-actions button:hover:not(:disabled),
+.optic-catalog-projected-footer button:hover:not(:disabled) {
+  background: #eaf3fb;
+}
+
+.optic-catalog-projected-actions button:disabled,
+.optic-catalog-projected-footer button:disabled {
+  background: #e8eef4;
+  border-color: #d5dde6;
+  color: #4b5b6b;
+  cursor: not-allowed;
+}
+
+.optic-designer-properties .optic-key-checklist .optic-checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.15rem;
+  font-weight: 500;
+}
+
+.optic-key-checklist .optic-help {
+  margin: 0;
+}
+
+.optic-designer-view-toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.25rem;
+  background: var(--optic-field);
+  border: 1px solid var(--optic-line);
+  border-radius: 12px;
+}
+
+.optic-designer-toolbar > p,
+.optic-designer-toolbar > .optic-status,
+.optic-designer-toolbar > .optic-designer-view-toggle {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.optic-designer-toolbar .optic-button-primary,
+.optic-designer-toolbar > button {
+  grid-column: auto;
+}
+
+.optic-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 0.35rem 0 0.5rem;
+}
+
+.optic-designer-header .optic-designer-view-toggle,
+.optic-designer-header-tools .optic-designer-view-toggle {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.optic-designer-toolstrip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.2rem;
+  border: 1px solid var(--optic-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.optic-designer-toolstrip > button {
+  min-height: 2.2rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+}
+
+.optic-designer-toolbar-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.optic-designer-identity {
+  margin: 0 0 1rem;
+  padding: 0.55rem 0.85rem 0.65rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+}
+
+.optic-designer-identity > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--optic-navy);
+  list-style: none;
+}
+
+.optic-designer-identity > summary::-webkit-details-marker {
+  display: none;
+}
+
+.optic-designer-identity > summary::before {
+  content: '▸ ';
+  color: var(--optic-muted);
+}
+
+.optic-designer-identity[open] > summary::before {
+  content: '▾ ';
+}
+
+.optic-designer-identity > summary code {
+  font-weight: 600;
+  color: var(--optic-muted);
+}
+
+.optic-designer-identity-fields {
+  margin: 0.75rem 0 0.15rem;
+}
+
+.optic-designer-empty {
+  display: grid;
+  place-content: center;
+  gap: 0.55rem;
+  justify-items: center;
+  margin: 0 0 1rem;
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  border: 1px dashed var(--optic-line);
+  border-radius: var(--optic-radius);
+  background: linear-gradient(180deg, #fbfcfe 0%, var(--optic-surface) 100%);
+}
+
+.optic-designer-empty p {
+  margin: 0;
+  max-width: 24rem;
+}
+
+.optic-designer-collapse {
+  grid-column: 1 / -1;
+  margin: 0.15rem 0;
+  padding: 0.55rem 0.75rem 0.7rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+}
+
+.optic-designer-collapse > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--optic-navy);
+}
+
+.optic-designer-collapse[open] > summary {
+  margin-bottom: 0.65rem;
+}
+
+.optic-lifecycle-panel {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0 0 1rem;
+  padding: 0.95rem 1.05rem 1.1rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+}
+
+.optic-lifecycle-status-row {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.optic-lifecycle-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  margin: 0;
+}
+
+.optic-lifecycle-meta {
+  color: var(--optic-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.optic-lifecycle-actor-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.optic-lifecycle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.optic-lifecycle-actions button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--optic-primary);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  color: var(--optic-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.optic-lifecycle-actions button:hover:not(:disabled) {
+  background: #eaf3fb;
+}
+
+.optic-lifecycle-actions .optic-button-primary {
+  background: var(--optic-primary);
+  color: #fff;
+}
+
+.optic-lifecycle-actions .optic-button-primary:hover:not(:disabled) {
+  background: var(--optic-primary-hover);
+  border-color: var(--optic-primary-hover);
+  color: #fff;
+}
+
+.optic-lifecycle-actions .optic-button-secondary {
+  border-color: var(--optic-line);
+  background: var(--optic-surface);
+  color: var(--optic-navy-mid);
+}
+
+.optic-lifecycle-actions .optic-button-secondary:hover:not(:disabled) {
+  background: #f3f6f9;
+  border-color: #c5d0db;
+}
+
+.optic-lifecycle-actions button:disabled {
+  background: #e8eef4;
+  border-color: #d5dde6;
+  color: #4b5b6b;
+  cursor: not-allowed;
+}
+
+.optic-lifecycle-package {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0 0 1rem;
+  padding: 0.95rem 1.05rem 1.1rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+}
+
+.optic-lifecycle-package-header {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.optic-lifecycle-package-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--optic-navy);
+}
+
+.optic-lifecycle-package-header .optic-help {
+  margin: 0;
+  max-width: 42rem;
+}
+
+.optic-lifecycle-package-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 0.85rem;
+}
+
+.optic-lifecycle-package-card {
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-field);
+}
+
+.optic-lifecycle-package-card h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--optic-navy);
+}
+
+.optic-lifecycle-package-fields {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.optic-lifecycle-package-fields .optic-catalog-field {
+  margin: 0;
+}
+
+.optic-lifecycle-package-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.optic-lifecycle-validate-ok {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border-left: 4px solid var(--optic-success);
+  border-radius: var(--optic-radius-sm);
+  background: #eef8f2;
+  color: var(--optic-success);
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.optic-lifecycle-validate-result {
+  margin-top: 0.25rem;
+}
+
+.optic-lifecycle-validate-result h3 {
+  margin: 0.65rem 0 0.35rem;
+  font-size: 0.92rem;
+  color: var(--optic-navy);
+}
+
+.optic-catalog-kind-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.15rem;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(12, 35, 64, 0.08);
+  color: var(--optic-navy-mid);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.optic-designer-subnav button[aria-pressed='true'] .optic-catalog-kind-count {
+  background: rgba(11, 92, 171, 0.14);
+  color: var(--optic-navy);
+}
+
+.optic-catalog-kind {
+  margin-top: 0.25rem;
+}
+
+.optic-catalog-kind-intro {
+  margin: 0 0 1rem;
+}
+
+.optic-catalog-kind-intro h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+  color: var(--optic-navy);
+}
+
+.optic-catalog-kind-intro .optic-help {
+  margin: 0;
+  max-width: 42rem;
+}
+
+.optic-designer-panes.optic-catalog-panes {
+  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  align-items: start;
+}
+
+.optic-catalog-list {
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+  min-width: 0;
+  padding: 0.7rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  background: var(--optic-field);
+}
+
+.optic-catalog-list-header {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.optic-catalog-list-header h3 {
+  margin: 0;
+  line-height: 1.2;
+  font-size: 0.92rem;
+  color: var(--optic-navy);
+}
+
+.optic-catalog-list-header button,
+.optic-catalog-footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.optic-catalog-list-header button {
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-height: 2rem;
+  padding: 0.28rem 0.7rem;
+  font-size: 0.84rem;
+  line-height: 1.2;
+}
+
+.optic-catalog-footer button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.optic-catalog-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.optic-catalog-list li button {
+  display: grid;
+  gap: 0.15rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  color: var(--optic-navy);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+}
+
+.optic-catalog-list li button:hover {
+  border-color: rgba(11, 92, 171, 0.35);
+}
+
+.optic-catalog-list li button[aria-pressed='true'] {
+  border-color: var(--optic-navy);
+  background: linear-gradient(180deg, #ffffff 0%, #eaf2fb 100%);
+  box-shadow: 0 0 0 2px rgba(11, 92, 171, 0.12);
+}
+
+.optic-catalog-list li button strong {
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.optic-catalog-list li button .optic-form-key {
+  margin: 0;
+  font-size: 0.72rem;
+}
+
+.optic-catalog-detail {
+  display: grid;
+  gap: 0.85rem;
+  align-content: start;
+  min-width: 0;
+}
+
+.optic-catalog-detail-solo {
+  max-width: 48rem;
+}
+
+.optic-catalog-builtin-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.optic-catalog-builtin-list > li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-field);
+}
+
+.optic-catalog-builtin-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem 0.75rem;
+}
+
+.optic-catalog-builtin-head strong {
+  color: var(--optic-navy);
+}
+
+.optic-catalog-builtin-reset {
+  margin-left: auto;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.78rem;
+}
+
+.optic-catalog-builtin-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0.65rem 0.85rem;
+}
+
+.optic-catalog-section-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.optic-catalog-search-extras {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.optic-catalog-search-extras > li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-field);
+}
+
+.optic-catalog-search-extra-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem 0.75rem;
+}
+
+.optic-catalog-search-extra-head strong {
+  color: var(--optic-navy);
+}
+
+.optic-catalog-search-extra-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1.5fr) minmax(8rem, 0.9fr) minmax(7rem, auto);
+  gap: 0.65rem 0.85rem;
+  align-items: start;
+}
+
+.optic-catalog-search-extra-row .optic-catalog-check {
+  justify-content: flex-end;
+  padding-top: 1.35rem;
+}
+
+.optic-catalog-section > .optic-catalog-footer {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 40rem) {
+  .optic-catalog-search-extra-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .optic-catalog-search-extra-row .optic-catalog-check {
+    padding-top: 0;
+  }
+}
+
+.optic-catalog-search-advanced {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border: 1px dashed var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: transparent;
+}
+
+.optic-catalog-search-advanced > summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--optic-muted);
+}
+
+.optic-catalog-search-advanced[open] > summary {
+  margin-bottom: 0.65rem;
+  color: var(--optic-navy);
+}
+
+.optic-catalog-section {
+  margin: 0;
+  padding: 0.85rem 1rem 1rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 0.75rem 1rem;
+  align-items: start;
+}
+
+.optic-catalog-section > legend {
+  padding: 0 0.35rem;
+  font-weight: 700;
+  color: var(--optic-navy);
+}
+
+.optic-catalog-section-hint,
+.optic-catalog-hint {
+  margin: 0;
+  color: var(--optic-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.optic-catalog-section-hint {
+  grid-column: 1 / -1;
+  margin-top: -0.15rem;
+}
+
+.optic-catalog-field,
+.optic-catalog-check {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.optic-catalog-field > label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  font-weight: inherit;
+}
+
+.optic-catalog-field-label {
+  color: var(--optic-navy);
+}
+
+.optic-catalog-check-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.15rem;
+  font-weight: 600;
+}
+
+.optic-catalog-check .optic-catalog-hint {
+  margin-left: 1.55rem;
+}
+
+.optic-catalog-section .optic-help,
+.optic-catalog-section .optic-key-list,
+.optic-catalog-section .optic-designer-json,
+.optic-catalog-section .optic-designer-behavior,
+.optic-catalog-section .optic-catalog-footer,
+.optic-catalog-section .optic-catalog-check,
+.optic-catalog-detail > .optic-designer-collapse,
+.optic-catalog-detail > .optic-catalog-footer {
+  grid-column: 1 / -1;
+}
+
+.optic-catalog-section .optic-key-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.optic-catalog-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+@media (max-width: 720px) {
+  .optic-designer-panes.optic-catalog-panes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* When the list stacks full-width, keep Add beside the title (not far right). */
+  .optic-catalog-list-header {
+    justify-content: flex-start;
+  }
+}
+
+.optic-designer-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  width: 100%;
+  margin: 0 0 1.5rem;
+  padding: 0.4rem;
+  background: #e8eef6;
+  border: 1px solid #cfd9e6;
+  border-radius: 14px;
+}
+
+.optic-designer-subnav.optic-designer-toolstrip {
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border-color: var(--optic-line);
+}
+
+.optic-designer-subnav button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.6rem;
+  padding: 0.45rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--optic-navy-mid);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.optic-designer-subnav.optic-designer-toolstrip button {
+  min-height: 2.2rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.84rem;
+}
+
+.optic-designer-subnav button[aria-pressed='true'],
+.optic-designer-subnav button[aria-selected='true'] {
+  background: var(--optic-surface);
+  color: var(--optic-navy);
+  border-color: var(--optic-navy);
+  box-shadow: 0 0 0 2px rgba(11, 37, 69, 0.1);
+}
+
+.optic-designer-subnav button:hover {
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--optic-navy);
+}
+
+.optic-designer-subnav button[aria-pressed='true']:hover,
+.optic-designer-subnav button[aria-selected='true']:hover {
+  background: #e4edf8;
+  color: var(--optic-navy);
+}
+
+.optic-designer-subnav button:focus-visible {
+  outline: 2px solid var(--optic-navy);
+  outline-offset: 2px;
+}
+
+.optic-designer-subnav .optic-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.optic-designer-subnav button[aria-pressed='true'] .optic-icon,
+.optic-designer-subnav button[aria-selected='true'] .optic-icon {
+  color: var(--optic-primary);
+}
+
+.optic-designer-view-toggle .optic-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.optic-designer-view-toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.35rem;
+  padding: 0.35rem 0.9rem;
+  border: 0;
+  background: transparent;
+  color: var(--optic-navy-mid);
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+}
+
+.optic-designer-view-toggle button[aria-pressed='true'],
+.optic-designer-view-toggle button[aria-selected='true'] {
+  background: var(--optic-primary);
+  color: #fff;
+}
+
+.optic-designer-view-toggle button:hover {
+  background: #dce8f6;
+}
+
+.optic-designer-view-toggle button[aria-pressed='true']:hover,
+.optic-designer-view-toggle button[aria-selected='true']:hover {
+  background: var(--optic-primary-hover);
+  color: #fff;
+}
+
+.optic-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 1.7rem;
+  padding: 0.1rem 0.65rem;
+  border-radius: 999px;
+  background: #eef2f6;
+  color: var(--optic-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.optic-chip-assigned {
+  background: #e7f5ed;
+  color: var(--optic-success);
+}
+
+.optic-empty {
+  margin: 0;
+  padding: 2.25rem 1.25rem;
+  text-align: center;
+  color: var(--optic-muted);
+  background: var(--optic-field);
+  border: 1px dashed var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+}
+
+.optic-designer-panes {
+  display: grid;
+  grid-template-columns: minmax(11rem, 15rem) minmax(0, 1fr) minmax(16rem, 20rem);
+  gap: 1.35rem;
+  margin-top: 0.35rem;
+}
+
+.optic-designer-panes[data-layout='workflow'] {
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
+  align-items: start;
+}
+
+.optic-designer-panes[data-layout='workflow'] > .optic-designer-canvas {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Transition rules sit directly under the canvas, not below the Properties column. */
+.optic-designer-panes[data-layout='workflow'] > .optic-designer-transitions {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  padding: 1.05rem;
+  background: var(--optic-field);
+}
+
+.optic-designer-panes[data-layout='workflow'] > .optic-designer-transitions .optic-designer-transition-header {
+  margin-top: 0;
+}
+
+.optic-designer-panes[data-layout='workflow'] > .optic-designer-properties {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-width: 0;
+  position: relative;
+  z-index: 2;
+  overflow: auto;
+}
+
+.optic-designer-palette,
+.optic-designer-canvas,
+.optic-designer-properties {
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  padding: 1.05rem;
+  background: var(--optic-field);
+}
+
+.optic-designer-palette h2,
+.optic-designer-properties h2,
+.optic-designer-canvas h2 {
+  margin: 0 0 0.85rem;
+  font-size: 0.95rem;
+  color: var(--optic-navy);
+}
+
+.optic-designer-type-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 1rem;
+  padding: 0.55rem 0.7rem;
+  background: #e4edf8;
+  border-radius: var(--optic-radius-sm);
+  color: var(--optic-navy);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.optic-designer-palette ul,
+.optic-designer-canvas ol,
+.optic-workflow-nodes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.optic-designer-palette li,
+.optic-designer-canvas li {
+  margin: 0 0 0.55rem;
+}
+
+.optic-designer-section-header,
+.optic-designer-canvas-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.optic-designer-canvas-row {
+  align-items: stretch;
+}
+
+.optic-designer-section-header > div {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.optic-designer-section-header > button,
+.optic-designer-section-header > div > button {
+  appearance: none;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--optic-navy);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.optic-designer-palette button {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  cursor: pointer;
+}
+
+.optic-designer-palette-actions {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.35rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--optic-line);
+}
+
+.optic-designer-palette .optic-help {
+  margin-top: 0.75rem;
+}
+
+.optic-designer-section {
+  margin: 0 0 1.1rem;
+  padding: 0.9rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+}
+
+.optic-designer-section[data-selected='true'],
+.optic-designer-field[data-selected='true'] {
+  outline: none;
+  border-color: var(--optic-navy);
+  background: linear-gradient(180deg, #ffffff 0%, #eaf2fb 100%);
+  box-shadow:
+    0 0 0 3px rgba(11, 92, 171, 0.16),
+    0 8px 22px rgba(12, 35, 64, 0.1);
+}
+
+.optic-workflow-scene .optic-workflow-node:focus-visible {
+  outline: 3px solid var(--optic-focus);
+  outline-offset: 2px;
+}
+
+.optic-designer-field {
+  appearance: none;
+  width: 100%;
+  min-height: 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.7rem;
+  text-align: left;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-field);
+  color: var(--optic-navy);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+}
+
+.optic-designer-field:hover {
+  border-color: rgba(11, 92, 171, 0.45);
+}
+
+.optic-designer-canvas-row .optic-designer-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.optic-designer-field .optic-form-key {
+  margin: 0;
+}
+
+.optic-designer-field-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.optic-designer-field-flag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--optic-navy);
+  background: var(--optic-field-muted, #e8eef5);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+}
+
+.optic-designer-field-type {
+  color: var(--optic-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.optic-designer-field-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.optic-designer-section-header .optic-designer-field-actions,
+.optic-designer-canvas-row .optic-designer-field-actions {
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+.optic-designer-field-actions .optic-designer-icon-button {
+  min-width: 2.15rem;
+  min-height: 2.15rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--optic-line);
+  border-radius: 8px;
+  background: var(--optic-surface);
+  color: var(--optic-navy);
+  box-shadow: none;
+}
+
+.optic-designer-field-actions .optic-designer-icon-button:hover:not(:disabled),
+.optic-designer-field-actions .optic-designer-quiet-button:hover:not(:disabled) {
+  border-color: var(--optic-primary);
+  background: #eaf3fb;
+  color: var(--optic-primary);
+}
+
+.optic-designer-field-actions .optic-designer-quiet-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.15rem;
+  padding: 0.2rem 0.65rem;
+  border-color: var(--optic-line);
+  color: var(--optic-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.optic-designer-field-actions .optic-designer-quiet-button .optic-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.optic-designer-field-actions .optic-designer-icon-button:disabled,
+.optic-designer-field-actions .optic-designer-quiet-button:disabled {
+  background: #e8eef4;
+  border-color: #d5dde6;
+  color: #8a98a8;
+}
+
+.optic-designer-behaviors,
+.optic-designer-behavior {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.1rem 0 0;
+}
+
+.optic-designer-transition-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.55rem 0.85rem;
+  margin-top: 1.25rem;
+}
+
+.optic-designer-transition-header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--optic-navy);
+}
+
+.optic-designer-transition-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.optic-designer-transition-set {
+  margin: 0.75rem 0 0;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  padding: 0 0.85rem 0.85rem;
+}
+
+.optic-designer-transition-set > summary {
+  cursor: pointer;
+  min-height: 2.5rem;
+  margin: 0 -0.85rem;
+  padding: 0.65rem 0.85rem;
+  font-weight: 700;
+  color: var(--optic-navy);
+}
+
+.optic-designer-transition-heading {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  width: calc(100% - 1.25rem);
+  vertical-align: middle;
+}
+
+.optic-designer-transition-set > summary:focus,
+.optic-designer-transition-set > summary:focus-visible {
+  outline: 3px solid var(--optic-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--optic-focus-glow);
+}
+
+.optic-designer-transition-set[open] > summary {
+  border-bottom: 1px solid var(--optic-line);
+  margin-bottom: 0.15rem;
+}
+
+.optic-designer-transition-preview {
+  font-weight: 500;
+  color: var(--optic-muted);
+  font-size: 0.88rem;
+}
+
+.optic-designer-transition-body {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.85rem 0 0;
+}
+
+.optic-workflow-rule-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.optic-workflow-rule-row {
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  overflow: hidden;
+}
+
+.optic-workflow-rule-row[data-expanded='true'] {
+  border-color: rgba(11, 92, 171, 0.35);
+  background: #f7fbff;
+}
+
+.optic-workflow-rule-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.45rem 0.55rem;
+  align-items: center;
+  padding: 0.35rem 0.45rem 0.35rem 0.55rem;
+}
+
+.optic-workflow-rule-order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.45rem;
+  height: 1.45rem;
+  border-radius: 999px;
+  background: #e8eef4;
+  color: var(--optic-navy);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.optic-workflow-rule-toggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.7fr);
+  gap: 0.4rem;
+  align-items: center;
+  min-width: 0;
+  min-height: 2.1rem;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: calc(var(--optic-radius-sm) - 1px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.optic-workflow-rule-toggle:hover {
+  background: rgba(11, 92, 171, 0.06);
+  border-color: #cfd9e6;
+}
+
+.optic-workflow-rule-toggle:focus-visible {
+  outline: 3px solid var(--optic-focus);
+  outline-offset: 2px;
+}
+
+.optic-workflow-rule-when {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--optic-navy);
+}
+
+.optic-workflow-rule-arrow {
+  color: var(--optic-muted);
+  font-weight: 600;
+}
+
+.optic-workflow-rule-target {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--optic-navy-mid);
+}
+
+.optic-workflow-rule-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.optic-workflow-rule-actions .optic-designer-quiet-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 2rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--optic-line);
+  border-radius: 0.45rem;
+  background: var(--optic-surface);
+  color: var(--optic-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.optic-workflow-rule-actions .optic-designer-quiet-button:hover:not(:disabled) {
+  border-color: rgba(11, 92, 171, 0.35);
+  background: #eaf3fb;
+  color: var(--optic-primary);
+}
+
+.optic-workflow-rule-actions .optic-designer-quiet-button:disabled {
+  background: #e8eef4;
+  border-color: #d5dde6;
+  color: #8a98a8;
+  cursor: not-allowed;
+}
+
+.optic-workflow-rule-actions .optic-designer-quiet-button .optic-icon {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.optic-workflow-rule-editor {
+  margin: 0;
+  padding: 0.65rem 0.75rem 0.85rem;
+  border-top: 1px solid var(--optic-line);
+}
+
+.optic-workflow-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.optic-workflow-canvas-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.optic-workflow-canvas-heading h2 {
+  margin: 0;
+}
+
+.optic-workflow-canvas-tools {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.optic-workflow-canvas-tools > button {
+  min-width: 2.4rem;
+  min-height: 2.1rem;
+  padding: 0.25rem 0.55rem;
+}
+
+.optic-workflow-tips {
+  max-width: 36rem;
+  color: var(--optic-muted);
+  font-size: 0.88rem;
+}
+
+.optic-workflow-tips summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--optic-navy-mid);
+  list-style: none;
+}
+
+.optic-workflow-tips summary::-webkit-details-marker {
+  display: none;
+}
+
+.optic-workflow-tips summary::before {
+  content: '▸ ';
+  color: var(--optic-primary);
+}
+
+.optic-workflow-tips[open] summary::before {
+  content: '▾ ';
+}
+
+.optic-workflow-tips .optic-help {
+  margin: 0.45rem 0 0;
+}
+
+.optic-workflow-graph {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  min-height: 26rem;
+  cursor: grab;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  background:
+    radial-gradient(circle at 1px 1px, rgba(12, 35, 64, 0.11) 1px, transparent 0) 0 0 / 20px 20px,
+    linear-gradient(180deg, #fbfcfe 0%, var(--optic-surface) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  cursor: default;
+  touch-action: none;
+}
+
+.optic-workflow-graph[data-panning='true'] {
+  cursor: grabbing;
+}
+
+.optic-workflow-viewport {
+  position: relative;
+  width: max-content;
+  height: max-content;
+  will-change: transform;
+}
+
+.optic-workflow-scene {
+  position: relative;
+}
+
+.optic-workflow-scene[data-connecting='true'] .optic-workflow-node-wrap:not([data-valid-target]):not([data-connect-source]) .optic-workflow-node {
+  opacity: 0.48;
+  filter: grayscale(0.15);
+}
+
+.optic-workflow-scene[data-connecting='true'] .optic-workflow-edge-hit {
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.optic-workflow-properties-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.65rem;
+}
+
+.optic-workflow-properties-header .optic-workflow-properties-title {
+  margin: 0;
+  min-width: 0;
+}
+
+.optic-workflow-properties-header .optic-designer-quiet-button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.15rem;
+  padding: 0.2rem 0.65rem;
+  border: 1px solid var(--optic-line);
+  border-radius: 0.55rem;
+  background: var(--optic-surface);
+  color: var(--optic-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.optic-workflow-properties-header .optic-designer-quiet-button:hover:not(:disabled) {
+  border-color: var(--optic-danger);
+  background: var(--optic-danger-bg);
+  color: var(--optic-danger);
+}
+
+.optic-workflow-properties-header .optic-designer-quiet-button:disabled {
+  background: #e8eef4;
+  border-color: #d5dde6;
+  color: #8a98a8;
+  cursor: not-allowed;
+}
+
+.optic-workflow-properties-header .optic-designer-quiet-button .optic-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.optic-workflow-properties-title {
+  margin: 0 0 0.65rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--optic-navy);
+}
+
+.optic-workflow-prop-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.3rem;
+  margin: 0 0 0.85rem;
+}
+
+.optic-workflow-prop-tabs button {
+  min-height: 2.1rem;
+  padding: 0.3rem 0.35rem;
+  border: 1px solid var(--optic-line);
+  border-radius: 999px;
+  background: var(--optic-surface);
+  color: var(--optic-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.optic-workflow-prop-tabs button:hover {
+  border-color: rgba(11, 92, 171, 0.35);
+  color: var(--optic-navy);
+}
+
+.optic-workflow-prop-tabs button[data-active='true'] {
+  border-color: var(--optic-navy);
+  background: #e4edf8;
+  color: var(--optic-navy);
+  box-shadow: 0 0 0 2px rgba(11, 37, 69, 0.1);
+}
+
+.optic-workflow-prop-tabs button:focus-visible {
+  outline: 2px solid var(--optic-navy);
+  outline-offset: 2px;
+}
+
+.optic-workflow-prop-panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.optic-workflow-empty {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-content: center;
+  gap: 0.55rem;
+  justify-items: center;
+  padding: 2rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.optic-workflow-empty .optic-button-primary {
+  pointer-events: auto;
+}
+
+.optic-workflow-empty p {
+  margin: 0;
+  max-width: 22rem;
+}
+
+.optic-workflow-node-wrap {
+  position: absolute;
+  z-index: 1;
+  width: 200px;
+  height: 96px;
+}
+
+.optic-workflow-node-wrap[data-valid-target='true'] .optic-workflow-node {
+  border-style: solid;
+  border-color: rgba(11, 92, 171, 0.45);
+  background: linear-gradient(180deg, #ffffff 0%, #eef6ff 100%);
+  box-shadow:
+    0 0 0 2px rgba(11, 92, 171, 0.12),
+    0 8px 22px rgba(12, 35, 64, 0.1);
+}
+
+.optic-workflow-node-wrap[data-drop-target='true'] .optic-workflow-node {
+  border-color: var(--optic-navy);
+  box-shadow:
+    0 0 0 3px rgba(11, 92, 171, 0.22),
+    0 12px 28px rgba(12, 35, 64, 0.16);
+  transform: translateY(-1px);
+}
+
+.optic-workflow-node-wrap[data-connect-source='true'] .optic-workflow-node {
+  opacity: 0.9;
+  box-shadow:
+    0 0 0 2px rgba(11, 92, 171, 0.2),
+    0 8px 22px rgba(12, 35, 64, 0.1);
+}
+
+.optic-workflow-node-wrap[data-connect-source='true'] .optic-workflow-connect-handle {
+  background: var(--optic-primary);
+  color: #fff;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.optic-workflow-node-wrap[data-dragging='true'] {
+  z-index: 5;
+}
+
+.optic-workflow-node-wrap[data-dragging='true'] .optic-workflow-node {
+  cursor: grabbing;
+  box-shadow: 0 14px 36px rgba(12, 35, 64, 0.18);
+}
+
+.optic-workflow-connect-handle {
+  position: absolute;
+  right: -0.7rem;
+  top: 50%;
+  z-index: 4;
+  transform: translateY(-50%);
+  width: 1.45rem;
+  height: 1.45rem;
+  padding: 0;
+  border: 1px solid var(--optic-primary);
+  border-radius: 999px;
+  background: var(--optic-surface);
+  color: var(--optic-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: crosshair;
+  touch-action: none;
+  box-shadow: 0 4px 12px rgba(12, 35, 64, 0.12);
+  transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.optic-workflow-connect-handle:hover {
+  background: var(--optic-primary);
+  color: #fff;
+  transform: translateY(-50%) scale(1.06);
+}
+
+.optic-workflow-connect-handle:focus-visible {
+  outline: 2px solid var(--optic-navy);
+  outline-offset: 2px;
+}
+
+.optic-workflow-connect-preview {
+  stroke: var(--optic-navy);
+  stroke-width: 2.25;
+  stroke-dasharray: 7 5;
+  stroke-linecap: round;
+  fill: none;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1px rgba(12, 35, 64, 0.18));
+}
+
+.optic-workflow-connect-fieldset {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+}
+
+.optic-workflow-connect-fieldset legend {
+  padding: 0 0.35rem;
+  font-weight: 700;
+}
+
+.optic-workflow-edges {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.optic-workflow-edges path {
+  fill: none;
+  stroke: var(--optic-primary);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+}
+
+.optic-workflow-edges g[data-kind='default'] path {
+  stroke-dasharray: 7 5;
+  stroke: #5b6b7c;
+}
+
+.optic-workflow-edges g[data-kind='timer'] path {
+  stroke-dasharray: 2 6;
+  stroke: #3d6b5a;
+  stroke-width: 2.25;
+}
+
+.optic-workflow-edges g[data-selected='true'] path {
+  stroke: var(--optic-navy);
+  stroke-width: 3;
+}
+
+.optic-workflow-edges marker path {
+  fill: var(--optic-primary);
+  stroke: none;
+}
+
+.optic-workflow-edges #optic-workflow-arrow-selected path {
+  fill: var(--optic-navy);
+}
+
+.optic-workflow-edges text {
+  fill: var(--optic-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  paint-order: stroke fill;
+  stroke: var(--optic-surface);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+.optic-workflow-edge-hit {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  min-height: 1.75rem;
+  max-width: 12rem;
+  padding: 0.2rem 0.65rem;
+  border: 1px solid var(--optic-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--optic-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(12, 35, 64, 0.08);
+  backdrop-filter: blur(4px);
+  opacity: 0.28;
+  transition:
+    opacity 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+}
+
+.optic-workflow-graph:hover .optic-workflow-edge-hit,
+.optic-workflow-edge-hit:hover,
+.optic-workflow-edge-hit:focus-visible,
+.optic-workflow-edge-hit[data-selected='true'] {
+  opacity: 1;
+}
+
+.optic-workflow-edge-hit[data-kind='default'] {
+  border-style: dashed;
+  color: #5b6b7c;
+}
+
+.optic-workflow-edge-hit[data-kind='timer'] {
+  border-style: dotted;
+  border-color: #3d6b5a;
+  color: #2f5446;
+}
+
+.optic-workflow-edge-hit[data-selected='true'] {
+  border-color: var(--optic-navy);
+  background: #e4edf8;
+  color: var(--optic-navy);
+  box-shadow: 0 0 0 2px rgba(11, 37, 69, 0.12);
+}
+
+.optic-workflow-edge-hit:focus-visible {
+  outline: 2px solid var(--optic-navy);
+  outline-offset: 2px;
+}
+
+.optic-workflow-scene .optic-workflow-node {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  width: 200px;
+  height: 96px;
+  min-width: 200px;
+  max-width: 200px;
+  min-height: 96px;
+  padding: 0.55rem 0.8rem 0.6rem;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  border: 1px solid rgba(11, 92, 171, 0.28);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f5f8fc 100%);
+  color: var(--optic-navy);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 8px 22px rgba(12, 35, 64, 0.08);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease,
+    background 140ms ease;
+}
+
+.optic-workflow-scene .optic-workflow-node:hover {
+  border-color: rgba(11, 92, 171, 0.45);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 12px 28px rgba(12, 35, 64, 0.12);
+}
+
+.optic-workflow-scene .optic-workflow-node[data-selected='true'] {
+  border-color: var(--optic-navy);
+  background: linear-gradient(180deg, #ffffff 0%, #eaf2fb 100%);
+  box-shadow:
+    0 0 0 3px rgba(11, 92, 171, 0.16),
+    0 12px 28px rgba(12, 35, 64, 0.12);
+}
+
+.optic-workflow-node {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.2rem;
+  min-width: 11.5rem;
+  max-width: 11.75rem;
+}
+
+.optic-workflow-node-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 100%;
+}
+
+.optic-workflow-node-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.15rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: rgba(11, 92, 171, 0.1);
+  color: var(--optic-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.optic-workflow-scene .optic-workflow-node strong,
+.optic-workflow-scene .optic-workflow-node span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optic-workflow-scene .optic-workflow-node strong {
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.optic-workflow-scene .optic-workflow-node .optic-form-key {
+  color: var(--optic-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.optic-workflow-node-meta {
+  color: var(--optic-muted);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.optic-workflow-node[data-terminal='true'] {
+  border-style: dashed;
+  background: linear-gradient(180deg, #ffffff 0%, #f3f5f8 100%);
+}
+
+.optic-workflow-node[data-initial='true'] .optic-workflow-node-pill:first-of-type {
+  background: rgba(15, 92, 58, 0.12);
+  color: var(--optic-success);
+}
+
+.optic-workflow-stage-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: rgba(12, 35, 64, 0.08);
+  color: var(--optic-navy-mid);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.optic-workflow-stage-sequence {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.35rem;
+}
+
+.optic-workflow-stage-sequence-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.optic-workflow-stage-sequence-list li[data-current='true'] {
+  font-weight: 700;
+}
+
+.optic-workflow-edge {
+  margin: 0;
+  font-weight: 700;
+  color: var(--optic-muted);
+}
+
+.optic-rule-editor {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0.5rem 0;
+  padding: 0.85rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+}
+
+.optic-rule-child {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.optic-packet-link-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.optic-packet-link-row {
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  overflow: hidden;
+}
+
+.optic-packet-link-row[data-expanded='true'] {
+  border-color: rgba(11, 92, 171, 0.35);
+  background: #f7fbff;
+}
+
+.optic-packet-link-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.4rem 0.5rem;
+  align-items: center;
+  padding: 0.3rem 0.4rem 0.3rem 0.5rem;
+}
+
+.optic-packet-link-order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  background: #e8eef4;
+  color: var(--optic-navy);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.optic-packet-link-toggle {
+  display: block;
+  min-width: 0;
+  min-height: 2.05rem;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: calc(var(--optic-radius-sm) - 1px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.optic-packet-link-toggle:hover {
+  background: rgba(11, 92, 171, 0.06);
+  border-color: #cfd9e6;
+}
+
+.optic-packet-link-toggle:focus-visible {
+  outline: 3px solid var(--optic-focus);
+  outline-offset: 2px;
+}
+
+.optic-packet-link-preview {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--optic-navy);
+}
+
+.optic-packet-link-summary .optic-designer-quiet-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 2rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--optic-line);
+  border-radius: 0.45rem;
+  background: var(--optic-surface);
+  color: var(--optic-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.optic-packet-link-summary .optic-designer-quiet-button:hover:not(:disabled) {
+  border-color: var(--optic-danger);
+  background: var(--optic-danger-bg);
+  color: var(--optic-danger);
+}
+
+.optic-packet-link-summary .optic-designer-quiet-button:disabled {
+  background: #e8eef4;
+  border-color: #d5dde6;
+  color: #8a98a8;
+  cursor: not-allowed;
+}
+
+.optic-packet-link-summary .optic-designer-quiet-button .optic-icon {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.optic-packet-link-editor {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.55rem 0.7rem 0.75rem;
+  border-top: 1px solid var(--optic-line);
+}
+
+.optic-rule-node {
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-field);
+  overflow: hidden;
+}
+
+.optic-rule-node[data-expanded='true'] {
+  border-color: rgba(11, 92, 171, 0.3);
+  background: #f7fbff;
+}
+
+.optic-rule-node-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.3rem 0.4rem 0.3rem 0.45rem;
+}
+
+.optic-rule-node-toggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.45rem 0.65rem;
+  align-items: baseline;
+  min-width: 0;
+  min-height: 2.05rem;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: calc(var(--optic-radius-sm) - 1px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.optic-rule-node-toggle:hover {
+  background: rgba(11, 92, 171, 0.06);
+  border-color: #cfd9e6;
+}
+
+.optic-rule-node-toggle:focus-visible {
+  outline: 3px solid var(--optic-focus);
+  outline-offset: 2px;
+}
+
+.optic-rule-node-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--optic-navy);
+  white-space: nowrap;
+}
+
+.optic-rule-node-preview {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--optic-muted);
+}
+
+.optic-rule-node-summary .optic-designer-quiet-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid var(--optic-line);
+  border-radius: 0.45rem;
+  background: var(--optic-surface);
+  color: var(--optic-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.optic-rule-node-summary .optic-designer-quiet-button:hover:not(:disabled) {
+  border-color: var(--optic-danger);
+  background: var(--optic-danger-bg);
+  color: var(--optic-danger);
+}
+
+.optic-rule-node-summary .optic-designer-quiet-button:disabled {
+  background: #e8eef4;
+  border-color: #d5dde6;
+  color: #8a98a8;
+  cursor: not-allowed;
+}
+
+.optic-rule-node-body {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.55rem 0.7rem 0.75rem;
+  border-top: 1px solid var(--optic-line);
+}
+
+.optic-rule-node-body .optic-rule-node {
+  background: var(--optic-surface);
+}
+
+.optic-diff-picker-field {
+  display: grid;
+  grid-template-rows: auto minmax(2.4rem, auto) auto;
+  gap: 0.55rem;
+  min-width: 0;
+  align-content: start;
+}
+
+.optic-diff-picker-field h3 {
+  margin: 0;
+}
+
+.optic-diff-picker-field .optic-catalog-field {
+  margin: 0;
+  width: 100%;
+}
+
+.optic-diff-picker-field .optic-catalog-field select,
+.optic-diff-picker-field .optic-catalog-field input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.optic-diff-picker-field .optic-catalog-hint {
+  margin: 0;
+  align-self: start;
+}
+
+.optic-diff-actions .optic-lifecycle-actions {
+  align-items: stretch;
+}
+
+.optic-diff-actions .optic-lifecycle-actions > button {
+  min-height: 2.5rem;
+}
+
+.optic-diff-actions {
+  display: grid;
+  gap: 0.4rem;
+  justify-items: start;
+}
+
+.optic-lifecycle-actions .optic-button-secondary {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  color: var(--optic-navy-mid);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.optic-lifecycle-actions .optic-button-secondary:hover:not(:disabled) {
+  background: #f3f6f9;
+  border-color: #c5d0db;
+}
+
+.optic-lifecycle-actions .optic-button-secondary:disabled {
+  background: #e8eef4;
+  border-color: #d5dde6;
+  color: #4b5b6b;
+  cursor: not-allowed;
+}
+
+.optic-diff-results {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0 0 1rem;
+}
+
+.optic-diff-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.optic-diff-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.55rem;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+}
+
+.optic-diff-chip-added {
+  background: #eef8f2;
+  color: var(--optic-success);
+}
+
+.optic-diff-chip-removed {
+  background: #fdeeee;
+  color: #8a1f1f;
+}
+
+.optic-diff-chip-changed {
+  background: #fff6e5;
+  color: #8a5a00;
+}
+
+.optic-diff-groups {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.optic-diff-group h3 {
+  margin: 0;
+}
+
+.optic-diff-change-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.optic-diff-change-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+}
+
+.optic-diff-change-body {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.optic-diff-change-body strong {
+  color: var(--optic-navy);
+  font-size: 0.9rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.optic-designer-diff {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.15rem;
+}
+
+.optic-designer-diff th,
+.optic-designer-diff td {
+  border: 1px solid var(--optic-line);
+  padding: 0.7rem 0.85rem;
+  text-align: left;
+}
+
+.optic-designer-simulation {
+  margin-top: 1.25rem;
+  padding: 1.1rem 1.2rem;
+  background: var(--optic-field);
+  border-radius: var(--optic-radius-sm);
+}
+
+.optic-reassign {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 0.3rem;
+  align-items: center;
+  margin: 0;
+}
+
+.optic-reassign label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--optic-muted);
+}
+
+.optic-reassign input {
+  width: 10rem;
+  min-height: 1.75rem;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.78rem;
+}
+
+.optic-reassign-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgb(17 38 64 / 45%);
+}
+
+.optic-reassign-dialog {
+  width: min(28rem, 100%);
+  padding: 1.25rem 1.35rem 1.35rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  background: var(--optic-surface);
+  box-shadow: 0 12px 40px rgb(17 38 64 / 18%);
+}
+
+.optic-reassign-dialog h2 {
+  margin: 0 0 0.85rem;
+  color: var(--optic-navy);
+  font-size: 1.1rem;
+}
+
+.optic-reassign-dialog form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.optic-reassign-dialog label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  color: var(--optic-navy);
+  font-weight: 650;
+  font-size: 0.88rem;
+}
+
+.optic-reassign-dialog input {
+  min-height: 2.5rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  color: var(--optic-navy);
+  font: inherit;
+  font-weight: 600;
+}
+
+.optic-guide-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgb(17 38 64 / 45%);
+}
+
+.optic-guide-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(52rem, 100%);
+  max-height: min(90vh, 56rem);
+  overflow: hidden;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  background: var(--optic-surface);
+  box-shadow: 0 12px 40px rgb(17 38 64 / 18%);
+}
+
+.optic-guide-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--optic-line);
+  background: #f7f9fc;
+}
+
+.optic-guide-dialog-header h2 {
+  margin: 0;
+  color: var(--optic-navy);
+  font-size: 1.15rem;
+}
+
+.optic-guide-dialog-scroll {
+  overflow: auto;
+  padding: 1.25rem 1.5rem 1.75rem;
+}
+
+.optic-guide-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  color: var(--optic-navy);
+  line-height: 1.55;
+}
+
+.optic-guide-title {
+  margin: 0;
+  font-size: 1.45rem;
+  color: var(--optic-navy);
+}
+
+.optic-guide-body h2 {
+  margin: 1.1rem 0 0;
+  scroll-margin-top: 0.75rem;
+  font-size: 1.15rem;
+  color: var(--optic-navy);
+}
+
+.optic-guide-body h3 {
+  margin: 0.75rem 0 0;
+  scroll-margin-top: 0.75rem;
+  font-size: 1rem;
+  color: var(--optic-navy-mid);
+}
+
+.optic-guide-paragraph,
+.optic-guide-list {
+  margin: 0;
+}
+
+.optic-guide-list {
+  padding-left: 1.25rem;
+}
+
+.optic-guide-list li + li {
+  margin-top: 0.35rem;
+}
+
+.optic-guide-rule {
+  width: 100%;
+  margin: 0.35rem 0;
+  border: 0;
+  border-top: 1px solid var(--optic-line);
+}
+
+.optic-guide-code {
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.3rem;
+  background: #eef3f9;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+}
+
+.optic-guide-doc-ref {
+  font-weight: 650;
+}
+
+.optic-guide-anchor {
+  color: var(--optic-navy-mid);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.optic-guide-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+}
+
+.optic-guide-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.optic-guide-table th,
+.optic-guide-table td {
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid var(--optic-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.optic-guide-table th {
+  background: #f3f6fa;
+  font-weight: 700;
+}
+
+.optic-guide-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.optic-designer-preview {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  background: var(--optic-field);
+  border-radius: var(--optic-radius);
+}
+
+.optic-designer-preview[data-preview='narrow'] {
+  max-width: 24rem;
+}
+
+.optic-designer-schema-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem 1.25rem;
+}
+
+.optic-designer-schema-bar .optic-help {
+  flex: 1 1 18rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+.optic-release-schema-forms {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.optic-release-schema-forms li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem 1rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+}
+
+.optic-release-schema-forms div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.optic-release-schema-forms span {
+  font-weight: 500;
+  color: var(--optic-navy-mid);
+}
+
+.optic-try-panel > .optic-try-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 0.85rem;
+}
+
+.optic-try-header-main {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.optic-try-header-main h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.optic-try-help {
+  max-width: 40rem;
+}
+
+.optic-try-help > summary {
+  cursor: pointer;
+  color: var(--optic-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.optic-try-help[open] > summary {
+  margin-bottom: 0.35rem;
+  color: var(--optic-navy);
+}
+
+.optic-try-help .optic-help {
+  margin: 0;
+}
+
+.optic-try-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.65rem 0.85rem;
+}
+
+.optic-try-desk {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.optic-try-queue-nav {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.optic-try-queue-nav button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.optic-try-queue-nav .optic-count-badge {
+  min-width: 1.45rem;
+  min-height: 1.35rem;
+  padding: 0 0.35rem;
+  border-radius: 3px;
+  font-size: 0.72rem;
+}
+
+.optic-try-queue-nav button[aria-pressed='true'] .optic-count-badge,
+.optic-try-queue-nav button[aria-current='page'] .optic-count-badge {
+  background: var(--optic-primary);
+  color: #fff;
+}
+
+.optic-try-desk .optic-queue {
+  margin: 0;
+  padding: 0.85rem 1rem 1rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  background: var(--optic-surface);
+}
+
+.optic-try-desk .optic-workspace-case {
+  margin-top: 0.15rem;
+}
+
+.optic-try-screens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.optic-screen-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.optic-screen-group-label {
+  margin: 0;
+  font-weight: 650;
+  color: var(--optic-navy);
+}
+
+.optic-try-screens button {
+  border: 1px solid var(--optic-line);
+  background: var(--optic-page);
+  color: var(--optic-ink);
+  font: inherit;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  border-radius: 0.45rem;
+}
+
+.optic-try-screens button[aria-pressed='true'] {
+  background: var(--optic-surface);
+  border-color: var(--optic-navy);
+  box-shadow: 0 0 0 1px var(--optic-navy);
+}
+
+.optic-stage-journey {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.optic-stage-lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.55rem 0.65rem 0.65rem;
+  border: 1px solid #e6edf5;
+  border-radius: var(--optic-radius-sm);
+  background: #f7fafc;
+}
+
+.optic-stage-lane + .optic-stage-lane {
+  padding-top: 0.65rem;
+  border-top: 1px solid #e1eaf3;
+}
+
+.optic-stage-lane-label {
+  margin: 0 0 0.35rem;
+  color: var(--optic-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.optic-stage-lane-ref,
+.optic-stage-lane-ref-inline {
+  color: var(--optic-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  word-break: break-all;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.optic-stage-lane-ref {
+  margin: 0 0 0.45rem;
+}
+
+.optic-stage-lane-ref-inline {
+  margin-left: 0.35rem;
+  font-weight: 600;
+}
+
+.optic-stage-tabs {
+  gap: 0.35rem;
+}
+
+.optic-try-screens .optic-stage-tab {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.45rem;
+  background: var(--optic-surface);
+  cursor: pointer;
+}
+
+.optic-stage-tab-name {
+  color: var(--optic-navy);
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.optic-stage-tab-note {
+  color: var(--optic-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.optic-try-screens .optic-stage-tab[aria-pressed='true'] {
+  background: var(--optic-navy);
+  border-color: var(--optic-navy);
+  box-shadow: none;
+}
+
+.optic-try-screens .optic-stage-tab[aria-pressed='true'] .optic-stage-tab-name,
+.optic-try-screens .optic-stage-tab[aria-pressed='true'] .optic-stage-tab-note {
+  color: #fff;
+}
+
+.optic-try-screens .optic-stage-tab[data-kind='mail'] {
+  background: #fff8ee;
+  border-color: #ead9be;
+}
+
+.optic-try-screens .optic-stage-tab[data-kind='mail'][aria-pressed='true'] {
+  background: #5b3d14;
+  border-color: #5b3d14;
+}
+
+.optic-try-screens .optic-stage-tab:focus,
+.optic-try-screens .optic-stage-tab:focus-visible {
+  outline: 3px solid var(--optic-focus-glow);
+  outline-offset: 2px;
+}
+
+.optic-case-readonly,
+.optic-case-empty {
+  max-width: 42rem;
+}
+
+.optic-case-readonly {
+  padding: 0.75rem 0.95rem;
+  border-left: 4px solid var(--optic-primary);
+  border-radius: 0 10px 10px 0;
+  background: #eef5fb;
+  color: var(--optic-navy-mid);
+}
+
+.optic-case-canvas .optic-form {
+  margin: 0;
+  box-shadow: none;
+}
+
+.optic-try-visits {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--optic-navy-mid);
+}
+
+.optic-designer-json {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  font-weight: 600;
+  grid-column: 1 / -1;
+}
+
+.optic-designer-json textarea {
+  min-height: 18rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88rem;
+}
+
+.optic-designer-toolbar .optic-rule-editor,
+.optic-designer-toolbar fieldset,
+.optic-designer-toolbar .optic-key-list {
+  grid-column: 1 / -1;
+}
+
+.optic-designer-toolbar .optic-key-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.optic-designer-toolbar .optic-key-list .optic-help {
+  margin: 0;
+  font-weight: 500;
+}
+
+@media (max-width: 60rem) {
+  .optic-shell {
+    border-radius: 0;
+    padding: 1rem 1.15rem 1.15rem;
+  }
+
+  .optic-demo-nav {
+    width: 100%;
+    border-radius: var(--optic-radius-sm);
+  }
+
+  .optic-designer-panes:not(.optic-catalog-panes),
+  .optic-designer-panes[data-layout='workflow'] {
+    grid-template-columns: 1fr;
+  }
+
+  .optic-designer-panes[data-layout='workflow'] > .optic-designer-canvas,
+  .optic-designer-panes[data-layout='workflow'] > .optic-designer-transitions,
+  .optic-designer-panes[data-layout='workflow'] > .optic-designer-properties {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .optic-search-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .optic-search-form > button,
+  .optic-search-form > .optic-search-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+.optic-workspace-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  margin: 0 0 1.35rem;
+  padding: 1.15rem 1.25rem 1.2rem;
+  border: 1px solid var(--optic-line-soft);
+  border-radius: var(--optic-radius);
+  background:
+    linear-gradient(135deg, rgba(12, 35, 64, 0.06), transparent 42%),
+    linear-gradient(180deg, #f8fbff, #eef4fb 100%);
+  box-shadow: var(--optic-shadow-soft);
+}
+
+.optic-workspace-hero .optic-workspace-kicker {
+  margin: 0 0 0.25rem;
+  color: var(--optic-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.optic-workspace .optic-designer-view-toggle {
+  border-radius: var(--optic-radius-sm);
+  background: rgba(255, 255, 255, 0.72);
+  border-color: var(--optic-line);
+}
+
+.optic-workspace .optic-designer-view-toggle button {
+  border-radius: 6px;
+}
+
+.optic-workspace .optic-designer-view-toggle button[aria-pressed='true'] {
+  background: var(--optic-navy);
+}
+
+.optic-workspace-hero h1 {
+  margin: 0;
+  color: var(--optic-navy);
+  font-size: clamp(1.55rem, 2.2vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+
+.optic-workspace-hero-tools {
+  --optic-hero-control-height: 3rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+}
+
+.optic-workspace-hero-tools .optic-working-as input,
+.optic-workspace-hero-tools .optic-guide-button {
+  box-sizing: border-box;
+  min-height: var(--optic-hero-control-height);
+  height: var(--optic-hero-control-height);
+}
+
+.optic-workspace-hero-tools .optic-designer-view-toggle {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: stretch;
+  min-height: var(--optic-hero-control-height);
+  height: var(--optic-hero-control-height);
+  padding: 0.2rem;
+}
+
+.optic-workspace-hero-tools .optic-designer-view-toggle button {
+  box-sizing: border-box;
+  min-height: 0;
+  height: 100%;
+  padding: 0 0.9rem;
+}
+
+.optic-working-as {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 12rem;
+  color: var(--optic-navy);
+  font-weight: 650;
+  font-size: 0.88rem;
+}
+
+.optic-working-as input {
+  box-sizing: border-box;
+  min-height: 2.5rem;
+  min-width: 16rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  color: var(--optic-navy);
+  font: inherit;
+  font-weight: 600;
+}
+
+.optic-workspace-desk {
+  display: grid;
+  /* Left sidebar (type + queues) is independent of search height on the right. */
+  grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr);
+  grid-template-areas:
+    'sidebar search'
+    'sidebar main';
+  gap: 1.35rem;
+  align-items: start;
+}
+
+.optic-workspace-rehearsal-banner {
+  margin: 0 0 1rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid #e0d09a;
+  border-left: 4px solid var(--optic-gold);
+  border-radius: var(--optic-radius-sm);
+  background: #fbf7e9;
+  color: #5c4d1a;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.optic-workspace-desk-focused {
+  /* Keep Workload Type + New mail/work arrives; only collapse Find a case. */
+  grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr);
+  grid-template-areas:
+    'sidebar main'
+    'sidebar main';
+}
+
+.optic-workspace-desk-focused .optic-workspace-search-card {
+  display: none;
+}
+
+.optic-workspace-desk-focused .optic-workspace-main {
+  min-height: calc(100vh - 9rem);
+}
+
+.optic-workspace-case-open .optic-workspace-main .optic-workspace-case {
+  animation: optic-case-enter 220ms ease-out;
+}
+
+.optic-workspace-main-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  align-items: flex-start;
+  margin: 0;
+  padding: 1.25rem 1.35rem;
+  border: 1px dashed #c5d3e4;
+  border-radius: var(--optic-radius);
+  background: #f8fafc;
+  color: var(--optic-navy-mid);
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+
+.optic-workspace-main-empty p {
+  margin: 0;
+  max-width: 36rem;
+}
+
+.optic-workspace-main-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.optic-status-toast {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 40;
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: 0.7rem 1rem;
+  border: 1px solid #b7d4c2;
+  border-radius: 0.55rem;
+  background: #eef8f1;
+  color: #1f4d33;
+  font-size: 0.92rem;
+  font-weight: 650;
+  box-shadow: 0 8px 24px rgba(20, 40, 60, 0.12);
+  animation: optic-toast-in 200ms ease-out;
+}
+
+.optic-queue-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+}
+
+@keyframes optic-case-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.45rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes optic-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes optic-count-pulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes optic-results-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.optic-workspace-sidebar {
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+  min-width: 0;
+}
+
+.optic-workspace-kind-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.optic-workspace-search-card {
+  grid-area: search;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.optic-workspace-search-card .optic-workspace-search {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.optic-workspace-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  /* Stay under Workload Type; search growth on the right must not move this. */
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 6rem);
+  overflow-y: auto;
+}
+
+.optic-workspace-card {
+  padding: 0.95rem 1.05rem 1.1rem;
+  border: 1px solid var(--optic-line-soft);
+  border-radius: var(--optic-radius);
+  background: var(--optic-surface);
+  box-shadow: var(--optic-shadow-soft);
+}
+
+.optic-workspace-rail .optic-workspace-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  background: var(--optic-surface);
+  box-shadow: var(--optic-shadow-soft);
+}
+
+.optic-workspace-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.85rem;
+  padding: 0 0 0.55rem;
+  border-bottom: 1px solid var(--optic-line-soft);
+  box-shadow: inset 0 -2px 0 var(--optic-navy);
+  color: var(--optic-navy);
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.optic-workspace-card h2 .optic-icon,
+.optic-workspace-section h2 .optic-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.optic-workspace-card h3 {
+  margin: 0 0 0.55rem;
+  color: var(--optic-navy);
+  font-size: 0.88rem;
+}
+
+.optic-workspace-search {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.optic-workspace-search-compact {
+  margin-top: 0;
+}
+
+.optic-workspace-search-header {
+  margin-bottom: 0.65rem;
+}
+
+.optic-workspace-search-compact .optic-search-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem 1rem;
+  margin: auto 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+.optic-workspace-search-compact .optic-search-form > .optic-search-advanced,
+.optic-workspace-search-compact .optic-search-form > .optic-search-actions {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+}
+
+.optic-workspace-search-compact .optic-search-form > .optic-search-actions {
+  justify-self: start;
+}
+
+.optic-search-advanced {
+  min-width: 0;
+}
+
+.optic-search-advanced > summary {
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  width: fit-content;
+  padding: 0.15rem 0;
+  color: var(--optic-ink);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.optic-search-advanced > summary::-webkit-details-marker {
+  display: none;
+}
+
+.optic-search-advanced > summary::before {
+  content: '▸';
+  display: inline-block;
+  width: 0.9em;
+  color: var(--optic-muted);
+  font-weight: 400;
+}
+
+.optic-search-advanced[open] > summary::before {
+  content: '▾';
+}
+
+.optic-search-advanced-count {
+  color: var(--optic-muted);
+  font-weight: 500;
+}
+
+.optic-search-advanced-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem 1rem;
+  margin-top: 0.65rem;
+}
+
+.optic-workspace-search-compact:has(.optic-search-results) .optic-search-form,
+.optic-workspace-search-compact:has(.optic-alert) .optic-search-form {
+  margin-top: 0.75rem;
+}
+
+.optic-workspace-search-compact .optic-search-results {
+  margin-top: 0.85rem;
+}
+
+.optic-workspace-search-compact .optic-search-hits {
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.optic-search-results {
+  min-width: 0;
+}
+
+.optic-search-results-status {
+  margin: 0 0 0.55rem;
+  color: var(--optic-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.optic-search-hits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  overflow: hidden;
+}
+
+.optic-search-hits > li {
+  min-width: 0;
+}
+
+.optic-search-hits > li + li {
+  border-top: 1px solid var(--optic-line);
+}
+
+.optic-search-hit {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.7rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--optic-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.optic-search-hit-index {
+  flex: 0 0 auto;
+  min-width: 2.5ch;
+  text-align: right;
+  color: var(--optic-muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.optic-search-hit-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+div.optic-search-hit {
+  cursor: default;
+}
+
+button.optic-search-hit:hover {
+  background: #f4f8fd;
+}
+
+button.optic-search-hit[aria-current='true'] {
+  background: #eaf3fb;
+  box-shadow: inset 3px 0 0 var(--optic-navy);
+}
+
+button.optic-search-hit[aria-current='true'] .optic-search-hit-id {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18em;
+}
+
+.optic-search-hit-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  color: var(--optic-navy);
+}
+
+.optic-search-hit-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.65rem;
+}
+
+.optic-search-hit-entity {
+  display: inline-block;
+  padding: 0.05rem 0.4rem;
+  border-radius: 0.3rem;
+  background: #e8eef6;
+  color: var(--optic-navy);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.optic-search-hit-receipt {
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+}
+
+.optic-search-results-enter {
+  animation: optic-results-enter 200ms ease-out;
+}
+
+.optic-count-badge-pulse {
+  animation: optic-count-pulse 280ms ease-out;
+}
+
+.optic-search-hit-meta,
+.optic-search-hit-match {
+  color: var(--optic-muted);
+  font-size: 0.85rem;
+}
+
+.optic-workspace-main {
+  grid-area: main;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-anchor: none;
+}
+
+.optic-workspace-main-empty {
+  margin: 0;
+  padding: 1.5rem 1.25rem;
+  border: 1px dashed #d5deea;
+  border-radius: var(--optic-radius);
+  background: #f7fafc;
+}
+
+.optic-kind-combobox {
+  margin: 0;
+}
+
+.optic-kind-combobox-field {
+  position: relative;
+}
+
+.optic-kind-combobox-control {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.optic-kind-combobox-control input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--optic-line);
+  border-right: 0;
+  border-radius: var(--optic-radius-sm) 0 0 var(--optic-radius-sm);
+  background: var(--optic-field);
+  color: var(--optic-ink);
+  font: inherit;
+  font-weight: 650;
+}
+
+.optic-kind-combobox-control input:focus,
+.optic-kind-combobox-control input:focus-visible {
+  outline: 3px solid var(--optic-focus-glow);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+.optic-kind-combobox-toggle {
+  flex: 0 0 auto;
+  min-width: 2.75rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--optic-line);
+  border-radius: 0 var(--optic-radius-sm) var(--optic-radius-sm) 0;
+  background: var(--optic-navy);
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.optic-kind-combobox-list {
+  z-index: 8;
+  max-height: 16rem;
+  overflow: auto;
+  margin: 0.35rem 0 0;
+  padding: 0.35rem;
+  list-style: none;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-surface);
+  box-shadow: var(--optic-shadow);
+}
+
+.optic-kind-combobox-list [role='option'] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.optic-kind-combobox-list [role='option'][data-active='true'],
+.optic-kind-combobox-list [role='option']:hover {
+  background: var(--optic-page-accent);
+}
+
+.optic-kind-combobox-name {
+  font-weight: 750;
+  color: var(--optic-navy);
+}
+
+.optic-kind-combobox-meta {
+  color: var(--optic-muted);
+  font-size: 0.9rem;
+}
+
+.optic-kind-combobox-empty {
+  padding: 0.7rem 0.65rem;
+  color: var(--optic-muted);
+}
+
+.optic-scan-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 0.75rem;
+}
+
+.optic-scan-form label {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 12rem;
+  gap: 0.25rem;
+  font-weight: 650;
+}
+
+.optic-scan-form input {
+  min-width: 0;
+  width: 100%;
+}
+
+.optic-sticker-sheet {
+  margin-top: 1.25rem;
+}
+
+.optic-sticker-sheet h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+}
+
+.optic-sticker-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.optic-sticker {
+  display: flex;
+  gap: 0.75rem;
+  width: min(100%, 22rem);
+  padding: 0.75rem;
+  border: 2px solid var(--optic-navy);
+  background: var(--optic-page);
+}
+
+.optic-sticker-qr svg {
+  width: 7rem;
+  height: 7rem;
+  display: block;
+}
+
+.optic-sticker-kind,
+.optic-sticker p {
+  margin: 0 0 0.25rem;
+}
+
+.optic-sticker-tracking {
+  font-size: 1.05rem;
+  font-weight: 750;
+  word-break: break-all;
+}
+
+.optic-workspace-kicker {
+  margin: 0 0 0.25rem;
+  color: var(--optic-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.optic-workspace h1 {
+  margin: 0 0 0.4rem;
+  font-size: 2rem;
+  letter-spacing: -0.03em;
+}
+
+.optic-kind-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+  gap: 0.85rem;
+  margin: 0 0 1.5rem;
+}
+
+.optic-kind-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  min-height: 8.5rem;
+  padding: 1.1rem 1.15rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius);
+  background: var(--optic-navy);
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.optic-kind-tile:focus,
+.optic-kind-tile:focus-visible {
+  outline: 3px solid var(--optic-focus-glow);
+  outline-offset: 3px;
+}
+
+.optic-kind-tile[aria-pressed='true'] {
+  box-shadow: 0 0 0 3px var(--optic-focus-glow);
+}
+
+.optic-kind-number {
+  font-size: 2rem;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.optic-kind-meta {
+  color: #d7e3f4;
+  font-size: 0.92rem;
+}
+
+.optic-workspace-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.55rem;
+  margin: auto 0 0;
+}
+
+.optic-workspace-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.optic-workspace-queue-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.optic-workspace-queue-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 2.45rem;
+  padding: 0.4rem 0.7rem 0.4rem 0.65rem;
+  border: 1px solid transparent;
+  border-left: 3px solid transparent;
+  border-radius: 0 6px 6px 0;
+  background: transparent;
+  color: var(--optic-ink);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 550;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.optic-workspace-queue-list button:hover:not(:disabled) {
+  background: #eef4fb;
+  border-left-color: #9bb6d4;
+}
+
+.optic-workspace-queue-list button[aria-pressed='true'] {
+  background: #e5eef8;
+  border-color: transparent;
+  border-left-color: var(--optic-navy);
+  color: var(--optic-navy);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(11, 92, 171, 0.08);
+}
+
+.optic-workspace-queue-list button:focus,
+.optic-workspace-queue-list button:focus-visible {
+  outline: 3px solid var(--optic-focus-glow);
+  outline-offset: 1px;
+}
+
+.optic-workspace-queue-list .optic-count-badge {
+  min-width: 1.45rem;
+  min-height: 1.35rem;
+  padding: 0 0.35rem;
+  border-radius: 3px;
+  background: var(--optic-navy);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-align: center;
+}
+
+.optic-workspace-queue-list button[aria-pressed='true'] .optic-count-badge {
+  background: var(--optic-primary);
+  color: #fff;
+}
+
+.optic-workspace-section {
+  margin: 0;
+  padding: 0.7rem 0.75rem 0.8rem;
+  border: 1px solid var(--optic-line);
+  border-radius: var(--optic-radius-sm);
+  background: var(--optic-field);
+}
+
+.optic-workspace-section-mail {
+  border-color: #b8cce4;
+  border-left: 4px solid var(--optic-primary);
+  background: linear-gradient(180deg, #f4f8fd, #eef4fb);
+}
+
+.optic-workspace-section-workload {
+  border-color: #c5ceda;
+  border-left: 4px solid var(--optic-navy);
+  background: linear-gradient(180deg, #f7f8fa, #f1f3f6);
+}
+
+.optic-workspace-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.55rem;
+  padding: 0 0 0.45rem;
+  border: 0;
+  border-bottom: 1px solid rgba(12, 35, 64, 0.1);
+  box-shadow: none;
+  color: var(--optic-navy);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.optic-workspace-section-mail h2 {
+  color: var(--optic-primary);
+}
+
+.optic-workspace-section-workload h2 {
+  color: var(--optic-navy);
+}
+
+.optic-workspace-section h2 .optic-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  opacity: 0.85;
+}
+
+.optic-workspace-section-mail .optic-workspace-queue-list button[aria-pressed='true'] {
+  border-left-color: var(--optic-primary);
+  background: #dde9f6;
+}
+
+.optic-workspace-section-workload .optic-workspace-queue-list button[aria-pressed='true'] {
+  border-left-color: var(--optic-navy);
+  background: #e4e8ee;
+}
+
+.optic-workspace-section-mail .optic-workspace-queue-list button[aria-pressed='true'] .optic-count-badge {
+  background: var(--optic-primary);
+}
+
+.optic-workspace-section-workload .optic-workspace-queue-list button[aria-pressed='true'] .optic-count-badge {
+  background: var(--optic-navy);
+}
+
+.optic-paper {
+  padding: 1.15rem 1.25rem 1.4rem;
+  border: 1px solid #e4d8c4;
+  border-radius: 2px;
+  background: #fbf6ec;
+  box-shadow: var(--optic-shadow);
+}
+
+.optic-workspace-main .optic-queue {
+  border: 1px solid var(--optic-line-soft);
+  box-shadow: var(--optic-shadow-soft);
+  /* Prefer keeping the queue header in place when row count changes. */
+  overflow-anchor: none;
+}
+
+.optic-workspace-main .optic-queue-table-wrap {
+  min-height: 14rem;
+}
+
+.optic-workspace-case {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  min-height: min(72vh, 52rem);
+  padding: 0;
+  border: 1px solid #d9e3ef;
+  border-radius: var(--optic-radius);
+  background: var(--optic-surface);
+  box-shadow: var(--optic-shadow);
+  overflow: hidden;
+}
+
+.optic-case-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.9rem 1.05rem 0.8rem;
+  border-bottom: 1px solid var(--optic-line-soft);
+  background:
+    linear-gradient(90deg, rgba(11, 92, 171, 0.05), transparent 55%),
+    #fbfcfe;
+}
+
+.optic-case-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.85rem;
+}
+
+.optic-case-title {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--optic-navy);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.optic-case-tracking {
+  margin: 0;
+  color: var(--optic-muted);
+  font-size: 0.88rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.optic-case-meta-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.85rem;
+  color: var(--optic-navy-mid);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.optic-case-ownership {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem 1rem;
+  margin-top: 0.2rem;
+  padding: 0.7rem 0.85rem 0.7rem 0.95rem;
+  border: 1px solid transparent;
+  border-radius: var(--optic-radius-sm);
+  border-left-width: 0.35rem;
+  box-shadow: var(--optic-shadow-soft);
+}
+
+.optic-case-ownership.is-assigned {
+  border-color: #9eb9d8;
+  border-left-color: var(--optic-primary);
+  background: #edf4fb;
+  color: var(--optic-navy);
+}
+
+.optic-case-ownership.is-unassigned {
+  border-color: #d9be5a;
+  border-left-color: var(--optic-gold);
+  background: #fff;
+  color: var(--optic-navy);
+}
+
+.optic-case-ownership-assignment {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+  min-width: 0;
+}
+
+.optic-case-ownership-assignment .optic-icon {
+  flex: 0 0 auto;
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.optic-case-ownership.is-assigned .optic-case-ownership-assignment .optic-icon {
+  color: var(--optic-primary);
+}
+
+.optic-case-ownership.is-unassigned .optic-case-ownership-assignment .optic-icon {
+  color: #9a7a12;
+}
+
+.optic-case-ownership-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--optic-navy-mid);
+}
+
+.optic-case-ownership.is-unassigned .optic-case-ownership-label {
+  color: #7a6110;
+}
+
+.optic-case-ownership-officer {
+  font-size: 1.08rem;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--optic-navy);
+  word-break: break-word;
+}
+
+.optic-case-ownership .optic-status-pill {
+  margin-left: auto;
+  background: #fff;
+  border: 1px solid var(--optic-line);
+  color: var(--optic-navy-mid);
+  font-size: 0.72rem;
+}
+
+.optic-case-assignment-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.optic-case-assignment-bar .optic-button-primary {
+  min-height: 2.2rem;
+  padding: 0.4rem 0.85rem;
+}
+
+.optic-case-assignment-bar .optic-case-action-quiet {
+  border: 1px solid var(--optic-line-soft);
+  border-radius: 0.4rem;
+  background: #fff;
+}
+
+.optic-case-callout {
+  margin: 0;
+  max-width: 46rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.45rem;
+  background: #eef5fb;
+  color: var(--optic-navy-mid);
+  font-size: 0.88rem;
+}
+
+.optic-case-callout-muted {
+  background: #f4f6f8;
+}
+
+.optic-case-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0.85rem 1rem 1rem;
+  overflow: auto;
+}
+
+.optic-case-secondary {
+  border-top: 1px solid #e6edf5;
+  padding-top: 0.55rem;
+}
+
+.optic-case-secondary > summary {
+  cursor: pointer;
+  color: var(--optic-navy);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.optic-case-secondary[open] > summary {
+  margin-bottom: 0.45rem;
+}
+
+.optic-case-labels {
+  margin-top: 0;
+  padding-top: 0.55rem;
+  border-top: 1px solid #e6edf5;
+}
+
+.optic-case-action-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  padding: 0.65rem 1rem;
+  border-top: 1px solid #d9e3ef;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(6px);
+}
+
+.optic-case-action-primary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-right: auto;
+}
+
+.optic-case-action-primary .optic-button-primary {
+  min-height: 2.35rem;
+  padding: 0.35rem 1.1rem;
+  border-radius: 0.55rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.optic-case-action-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.75rem;
+}
+
+.optic-case-action-cluster {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid var(--optic-line);
+  border-radius: 0.55rem;
+  background: #f7f9fc;
+  overflow: hidden;
+}
+
+.optic-case-action-cluster + .optic-case-action-cluster {
+  margin-left: 0.1rem;
+}
+
+.optic-case-action-quiet {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.15rem;
+  margin: 0;
+  padding: 0.3rem 0.75rem;
+  border: 0;
+  border-right: 1px solid var(--optic-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--optic-navy-mid);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.optic-case-action-quiet:last-child {
+  border-right: 0;
+}
+
+.optic-case-action-quiet .optic-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  opacity: 0.85;
+}
+
+.optic-case-action-quiet:hover:not(:disabled) {
+  background: #eef3f9;
+  color: var(--optic-navy);
+}
+
+.optic-case-action-quiet:focus-visible {
+  outline: 3px solid var(--optic-focus);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.optic-case-action-more {
+  position: relative;
+}
+
+.optic-case-action-more > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.15rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--optic-line);
+  border-radius: 0.55rem;
+  background: #f7f9fc;
+  color: var(--optic-navy-mid);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.optic-case-action-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.optic-case-action-more[open] > summary {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background: #eef3f9;
+  color: var(--optic-navy);
+}
+
+.optic-case-action-more-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.35rem);
+  z-index: 5;
+  width: min(22rem, calc(100vw - 2rem));
+  max-height: min(22rem, 50vh);
+  overflow: auto;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--optic-line);
+  border-radius: 0.55rem;
+  background: var(--optic-surface);
+  box-shadow: 0 10px 28px rgba(20, 40, 60, 0.14);
+}
+
+.optic-case-action-more-section + .optic-case-action-more-section {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e6edf5;
+}
+
+.optic-case-action-more-section h3 {
+  margin: 0 0 0.45rem;
+  color: var(--optic-navy);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.optic-case-action-print {
+  margin-top: 0.55rem;
+  border: 1px solid var(--optic-line);
+  border-radius: 0.45rem;
+}
+
+.optic-case-action-quiet:disabled {
+  color: #8a98a8;
+  cursor: not-allowed;
+}
+
+.optic-case-action-back {
+  color: var(--optic-muted);
+  font-weight: 650;
+}
+
+.optic-workspace-tracking {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+@media (max-width: 56rem) {
+  .optic-workspace-desk {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'sidebar'
+      'search'
+      'main';
+  }
+
+  .optic-workspace-desk-focused {
+    grid-template-areas:
+      'sidebar'
+      'main';
+  }
+
+  .optic-workspace-rail {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .optic-workspace-search-compact .optic-search-form,
+  .optic-search-advanced-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .optic-workspace-search-compact .optic-search-form > .optic-search-advanced,
+  .optic-workspace-search-compact .optic-search-form > .optic-search-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 40rem) {
+  .optic-form,
+  .optic-section,
+  .optic-queue,
+  .optic-designer {
+    padding: 1.15rem;
+  }
+
+  .optic-field[data-width='6'] {
+    grid-column: span 12;
+  }
+
+  .optic-queue-filter-row,
+  .optic-search-form,
+  .optic-bulk-action-row,
+  .optic-designer-choice-row[data-layout='projected'],
+  .optic-catalog-projected-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,513 @@
+{
+  "definitionKey": "I_407_MAILITEM",
+  "displayName": "I 407 Mail Item",
+  "entityType": "MAIL",
+  "schema": {
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "docPrepDetails": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "workloads": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "workloadStatus": {
+                  "enum": [
+                    "accepted",
+                    "rejected",
+                    "fraud"
+                  ],
+                  "type": "string"
+                },
+                "workloadTrackingId": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "numberOfWorkloads": {
+            "type": "number"
+          },
+          "initialWorkloadStatus": {
+            "enum": [
+              "accepted",
+              "rejected",
+              "fraud"
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "mailItemdetails": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "courier": {
+            "enum": [
+              "DHL",
+              "FedEx",
+              "UPS",
+              "USPS"
+            ],
+            "type": "string"
+          },
+          "dateInput": {
+            "type": "string",
+            "format": "date"
+          },
+          "packageType": {
+            "enum": [
+              "Box",
+              "Envelope"
+            ],
+            "type": "string"
+          },
+          "workloadType": {
+            "type": "string"
+          },
+          "mailBinNumber": {
+            "type": "string"
+          },
+          "mailTrackingNumber": {
+            "type": "string"
+          },
+          "packageTrackingNumber": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "additionalProperties": false
+  },
+  "workflow": {
+    "initialStageKey": "NEW_MAIL_ITEM",
+    "terminalStageKeys": [
+      "COMPLETED"
+    ],
+    "stages": [
+      {
+        "order": 30,
+        "layout": {
+          "x": 656.1172485351562,
+          "y": 48
+        },
+        "stageKey": "COMPLETED",
+        "terminal": true,
+        "actionKeys": [],
+        "displayName": "Completed",
+        "assignmentPolicy": {
+          "required": false,
+          "clearOnTransition": true
+        },
+        "transitionSetKey": "FROM_STAGE_3"
+      },
+      {
+        "order": 10,
+        "layout": {
+          "x": 40.11724853515625,
+          "y": 48
+        },
+        "formKey": "I_407_MAILITEM",
+        "queueKey": "NEW_MAIL_ITEM",
+        "stageKey": "NEW_MAIL_ITEM",
+        "actionKeys": [
+          "COMPLETE"
+        ],
+        "displayName": "New Mail Item",
+        "assignmentPolicy": {
+          "required": false,
+          "clearOnTransition": true
+        },
+        "transitionSetKey": "FROM_STAGE"
+      },
+      {
+        "order": 20,
+        "layout": {
+          "x": 348.11724853515625,
+          "y": 48
+        },
+        "formKey": "I_407_DOC_PREP",
+        "queueKey": "READY_FOR_DOC_PREP",
+        "stageKey": "READY_FOR_DOC_PREP",
+        "actionKeys": [
+          "COMPLETE"
+        ],
+        "displayName": "Ready for Doc Prep",
+        "assignmentPolicy": {
+          "required": true,
+          "clearOnTransition": true
+        },
+        "transitionSetKey": "FROM_STAGE_2"
+      }
+    ],
+    "transitionSets": [
+      {
+        "rules": [],
+        "evaluationMode": "FIRST_MATCH",
+        "transitionSetKey": "FROM_STAGE",
+        "defaultTargetStageKey": "READY_FOR_DOC_PREP"
+      },
+      {
+        "rules": [],
+        "evaluationMode": "FIRST_MATCH",
+        "transitionSetKey": "FROM_STAGE_2",
+        "defaultTargetStageKey": "COMPLETED"
+      }
+    ]
+  },
+  "forms": {
+    "I_407_DOC_PREP": {
+      "title": "I407 Doc Prep",
+      "schema": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "workloads": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "workloadStatus": {
+                  "enum": [
+                    "accepted",
+                    "rejected",
+                    "fraud"
+                  ],
+                  "type": "string"
+                },
+                "workloadTrackingId": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "numberOfWorkloads": {
+            "type": "number"
+          },
+          "initialWorkloadStatus": {
+            "enum": [
+              "accepted",
+              "rejected",
+              "fraud"
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "formKey": "I_407_DOC_PREP",
+      "dataPath": "$.docPrepDetails",
+      "sections": [
+        {
+          "title": "DOC Prep",
+          "fields": [
+            {
+              "path": "$.numberOfWorkloads",
+              "label": "# of Workloads to Add",
+              "width": 12,
+              "fieldKey": "NUMBER_OF_WORKLOADS",
+              "component": "NUMBER_INPUT"
+            },
+            {
+              "path": "$.initialWorkloadStatus",
+              "label": "Initial Workload Status",
+              "width": 12,
+              "options": [
+                {
+                  "label": "Accept",
+                  "value": "accepted"
+                },
+                {
+                  "label": "Reject",
+                  "value": "rejected"
+                },
+                {
+                  "label": "Fraud Review",
+                  "value": "fraud"
+                }
+              ],
+              "fieldKey": "INITIAL_WORKLOAD_STATUS",
+              "component": "RADIO"
+            }
+          ],
+          "layout": "ONE_COLUMN",
+          "repeatable": false,
+          "sectionKey": "DOC_PREP"
+        },
+        {
+          "path": "$.workloads",
+          "title": "New Workloads",
+          "fields": [
+            {
+              "path": "$.workloadTrackingId",
+              "label": "Tracking ID",
+              "width": 12,
+              "fieldKey": "TRACKING_ID",
+              "component": "TRACKING_ID_DISPLAY"
+            },
+            {
+              "path": "$.workloadStatus",
+              "label": "Radio buttons",
+              "width": 12,
+              "options": [
+                {
+                  "label": "Accept",
+                  "value": "accepted"
+                },
+                {
+                  "label": "Reject",
+                  "value": "rejected"
+                },
+                {
+                  "label": "Fraud Review",
+                  "value": "fraud"
+                }
+              ],
+              "fieldKey": "WORKLOAD_STATUS",
+              "component": "RADIO"
+            }
+          ],
+          "layout": "ONE_COLUMN",
+          "itemLabel": "Workload",
+          "repeatable": true,
+          "sectionKey": "SECTION",
+          "countFieldKey": "NUMBER_OF_WORKLOADS",
+          "addButtonLabel": "Add Workload",
+          "spawnDefinitionKey": "I_407_WORKLOAD",
+          "choiceSourceFieldKey": "INITIAL_WORKLOAD_STATUS"
+        }
+      ]
+    },
+    "I_407_MAILITEM": {
+      "title": "I 407 Mail Item",
+      "schema": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "courier": {
+            "enum": [
+              "DHL",
+              "FedEx",
+              "UPS",
+              "USPS"
+            ],
+            "type": "string"
+          },
+          "dateInput": {
+            "type": "string",
+            "format": "date"
+          },
+          "packageType": {
+            "enum": [
+              "Box",
+              "Envelope"
+            ],
+            "type": "string"
+          },
+          "workloadType": {
+            "type": "string"
+          },
+          "mailBinNumber": {
+            "type": "string"
+          },
+          "mailTrackingNumber": {
+            "type": "string"
+          },
+          "packageTrackingNumber": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "formKey": "I_407_MAILITEM",
+      "dataPath": "$.mailItemdetails",
+      "sections": [
+        {
+          "title": "Mail Item",
+          "fields": [
+            {
+              "path": "$.dateInput",
+              "label": "Received Date",
+              "width": 12,
+              "fieldKey": "RECEIVED_DATE",
+              "component": "DATE_INPUT"
+            },
+            {
+              "path": "$.courier",
+              "label": "Courier",
+              "width": 12,
+              "options": [
+                {
+                  "label": "DHL",
+                  "value": "DHL"
+                },
+                {
+                  "label": "FedEx",
+                  "value": "FedEx"
+                },
+                {
+                  "label": "UPS",
+                  "value": "UPS"
+                },
+                {
+                  "label": "USPS",
+                  "value": "USPS"
+                }
+              ],
+              "fieldKey": "COURIER",
+              "helpText": "Select Courier",
+              "component": "SELECT"
+            },
+            {
+              "path": "$.packageType",
+              "label": "Package Type",
+              "width": 12,
+              "options": [
+                {
+                  "label": "Box",
+                  "value": "Box"
+                },
+                {
+                  "label": "Envelope",
+                  "value": "Envelope"
+                }
+              ],
+              "fieldKey": "PACKAGE_TYPE",
+              "helpText": "Select Package Type",
+              "component": "SELECT"
+            },
+            {
+              "path": "$.packageTrackingNumber",
+              "label": "Package Tracking #",
+              "width": 12,
+              "fieldKey": "PACKAGE_TRACKING_NUMBER",
+              "component": "TEXT_INPUT"
+            },
+            {
+              "path": "$.workloadType",
+              "label": "Workload Type",
+              "width": 12,
+              "fieldKey": "WORKLOAD_TYPE",
+              "component": "TEXT_INPUT"
+            },
+            {
+              "path": "$.mailBinNumber",
+              "label": "Mail Bin #",
+              "width": 12,
+              "fieldKey": "MAIL_BIN_NUMBER",
+              "component": "TEXT_INPUT"
+            },
+            {
+              "path": "$.trackingId",
+              "label": "Mail Tracking #",
+              "width": 12,
+              "fieldKey": "MAIL_TRACKING_NUMBER",
+              "helpText": "",
+              "component": "TRACKING_ID_DISPLAY"
+            }
+          ],
+          "layout": "ONE_COLUMN",
+          "sectionKey": "SECTION"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "COMPLETE": {
+      "type": "TRANSITION",
+      "label": "Complete",
+      "actionKey": "COMPLETE",
+      "assignment": {
+        "clearOnTransition": true
+      },
+      "validation": {
+        "validateStageForm": true
+      },
+      "transitionSetKey": "FROM_STAGE",
+      "requireAssignmentToCurrentUser": true
+    }
+  },
+  "queues": {
+    "NEW_MAIL_ITEM": {
+      "actions": [
+        "ASSIGN_TO_SELF",
+        "RELEASE_TO_QUEUE"
+      ],
+      "columns": [
+        "trackingId",
+        "assignedTo"
+      ],
+      "filters": [
+        "assignedStatus"
+      ],
+      "pageSize": 25,
+      "queueKey": "NEW_MAIL_ITEM",
+      "entityType": "MAIL",
+      "defaultSort": [
+        {
+          "field": "enteredStageAt",
+          "direction": "ASC"
+        }
+      ],
+      "displayName": "New Mail Item",
+      "eligibility": {
+        "all": [
+          {
+            "field": "currentStageKey",
+            "value": "NEW_MAIL_ITEM",
+            "source": "workflow",
+            "operator": "EQUALS"
+          }
+        ]
+      }
+    },
+    "READY_FOR_DOC_PREP": {
+      "actions": [
+        "ASSIGN_TO_SELF",
+        "RELEASE_TO_QUEUE"
+      ],
+      "columns": [
+        "trackingId",
+        "assignedTo"
+      ],
+      "filters": [
+        "assignedStatus"
+      ],
+      "pageSize": 25,
+      "queueKey": "READY_FOR_DOC_PREP",
+      "entityType": "MAIL",
+      "defaultSort": [
+        {
+          "field": "enteredStageAt",
+          "direction": "ASC"
+        }
+      ],
+      "displayName": "Ready for Doc Prep",
+      "eligibility": {
+        "all": [
+          {
+            "field": "currentStageKey",
+            "value": "READY_FOR_DOC_PREP",
+            "source": "workflow",
+            "operator": "EQUALS"
+          }
+        ]
+      }
+    }
+  },
+  "bulkActions": {},
+  "scheduledActions": {},
+  "slas": {},
+  "search": {
+    "searchKey": "DEFAULT",
+    "fields": []
+  }
+}
