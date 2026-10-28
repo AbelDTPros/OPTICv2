@@ -57,7 +57,9 @@ import {
 } from './catalog-model.js';
 import { EligibilityEditor } from './EligibilityEditor.js';
 import { isDesignerDirty } from './designer-dirty.js';
-import { DesignerErrorBody, ErrorSummary } from '../ui/ErrorSummary.js';
+import type { DisplayError } from '../api/apply-api-error.js';
+import { CaughtErrorBanner } from '../ui/CaughtErrorBanner.js';
+import { ErrorSummary } from '../ui/ErrorSummary.js';
 import { ButtonLabel } from '../ui/Icon.js';
 import { SaveDraftButton } from './SaveDraftButton.js';
 
@@ -78,7 +80,7 @@ export interface CatalogDesignerProps {
   transitionSetKeys?: string[];
   defaultEntityType?: string;
   readOnly?: boolean;
-  errorSummary?: string;
+  errorSummary?: DisplayError;
   onActionsChange: (actions: Record<string, ActionDefinition>) => void;
   onQueuesChange: (queues: Record<string, QueueDefinition>) => void;
   onSlasChange: (slas: Record<string, SlaDefinition>) => void;
@@ -234,122 +236,123 @@ export function CatalogDesigner({
           </p>
         </div>
       </header>
-      <div className="optic-designer-subnav optic-designer-toolstrip" role="group" aria-label="Catalog type">
-        {visibleKinds.map((item) => (
-          <button
-            key={item}
-            type="button"
-            aria-pressed={kind === item}
-            title={catalogKindHelp(item)}
-            onClick={() => setKind(item)}
-          >
-            <ButtonLabel icon={catalogKindIcon(item)}>
-              {catalogKindLabel(item)}
-              <span className="optic-catalog-kind-count" aria-hidden="true">
-                {kindCounts[item]}
-              </span>
-            </ButtonLabel>
-          </button>
-        ))}
-      </div>
-      {errorSummary || issues.length > 0 ? (
-        <ErrorSummary
-          role={errorSummary ? 'alert' : 'status'}
-          focus={Boolean(errorSummary)}
-          heading="Validation"
-        >
-          {errorSummary ? <DesignerErrorBody message={errorSummary} /> : null}
+      <div className="optic-catalog-layout">
+        <nav className="optic-catalog-rail" aria-label="Catalog type">
+          <p className="optic-catalog-rail-kicker">Type</p>
+          <div className="optic-catalog-rail-nav" role="group" aria-label="Catalog kinds">
+            {visibleKinds.map((item) => (
+              <button
+                key={item}
+                type="button"
+                aria-pressed={kind === item}
+                title={catalogKindHelp(item)}
+                onClick={() => setKind(item)}
+              >
+                <ButtonLabel icon={catalogKindIcon(item)}>
+                  {catalogKindLabel(item)}
+                  <span className="optic-catalog-kind-count" aria-hidden="true">
+                    {kindCounts[item]}
+                  </span>
+                </ButtonLabel>
+              </button>
+            ))}
+          </div>
+        </nav>
+        <div className="optic-catalog-main">
+          <CaughtErrorBanner error={errorSummary} />
           {issues.length > 0 ? (
-            <ul>
-              {issues.map((issue) => (
-                <li key={issue.path + issue.message}>{issue.message}</li>
-              ))}
-            </ul>
+            <ErrorSummary role="status" focus={!errorSummary} heading="Validation">
+              <ul>
+                {issues.map((issue) => (
+                  <li key={issue.path + issue.message}>{issue.message}</li>
+                ))}
+              </ul>
+            </ErrorSummary>
           ) : null}
-        </ErrorSummary>
-      ) : null}
 
-      {kind === 'action' ? (
-        <ActionEditor
-          actions={actions}
-          selectedKey={action?.actionKey ?? ''}
-          transitionSetKeys={transitionSetKeys}
-          readOnly={readOnly}
-          savedActions={savedActions}
-          onSelect={setActionKey}
-          onChange={onActionsChange}
-          onSave={onSaveAction}
-          onDelete={onDeleteAction}
-        />
-      ) : null}
-      {kind === 'queue' ? (
-        <QueueEditor
-          queues={queues}
-          orderedQueues={orderedQueues}
-          forms={forms}
-          workflow={workflow}
-          selectedKey={queue?.queueKey ?? ''}
-          defaultEntityType={defaultEntityType}
-          readOnly={readOnly}
-          savedQueues={savedQueues}
-          onSelect={setQueueKey}
-          onChange={onQueuesChange}
-          onSave={onSaveQueue}
-          onDelete={onDeleteQueue}
-        />
-      ) : null}
-      {kind === 'sla' ? (
-        <SlaEditor
-          slas={slas}
-          selectedKey={sla?.slaKey ?? ''}
-          readOnly={readOnly}
-          savedSlas={savedSlas}
-          onSelect={setSlaKey}
-          onChange={onSlasChange}
-          onSave={onSaveSla}
-          onDelete={onDeleteSla}
-        />
-      ) : null}
-      {kind === 'search' ? (
-        <SearchEditor
-          search={search}
-          queues={queues}
-          forms={forms}
-          workflow={workflow}
-          readOnly={readOnly}
-          savedSearch={savedSearch}
-          savedQueues={savedQueues}
-          onChange={onSearchChange}
-          onQueuesChange={onQueuesChange}
-          onSave={onSaveSearch}
-        />
-      ) : null}
-      {kind === 'bulk' ? (
-        <BulkEditor
-          bulkActions={bulkActions}
-          selectedKey={bulk?.bulkActionKey ?? ''}
-          stageKeys={stageKeys}
-          readOnly={readOnly}
-          savedBulkActions={savedBulkActions}
-          onSelect={setBulkKey}
-          onChange={onBulkActionsChange}
-          onSave={onSaveBulkAction}
-          onDelete={onDeleteBulkAction}
-        />
-      ) : null}
-      {kind === 'scheduled' ? (
-        <ScheduledEditor
-          scheduledActions={scheduledActions}
-          selectedKey={scheduled?.scheduledActionKey ?? ''}
-          stageKeys={stageKeys}
-          readOnly={readOnly}
-          savedScheduledActions={savedScheduledActions}
-          onSelect={setScheduledKey}
-          onChange={onScheduledActionsChange}
-          onSave={onSaveScheduledAction}
-          onDelete={onDeleteScheduledAction}
-        />
-      ) : null}
+          {kind === 'action' ? (
+            <ActionEditor
+              actions={actions}
+              selectedKey={action?.actionKey ?? ''}
+              transitionSetKeys={transitionSetKeys}
+              readOnly={readOnly}
+              savedActions={savedActions}
+              onSelect={setActionKey}
+              onChange={onActionsChange}
+              onSave={onSaveAction}
+              onDelete={onDeleteAction}
+            />
+          ) : null}
+          {kind === 'queue' ? (
+            <QueueEditor
+              queues={queues}
+              orderedQueues={orderedQueues}
+              forms={forms}
+              workflow={workflow}
+              selectedKey={queue?.queueKey ?? ''}
+              defaultEntityType={defaultEntityType}
+              readOnly={readOnly}
+              savedQueues={savedQueues}
+              onSelect={setQueueKey}
+              onChange={onQueuesChange}
+              onSave={onSaveQueue}
+              onDelete={onDeleteQueue}
+            />
+          ) : null}
+          {kind === 'sla' ? (
+            <SlaEditor
+              slas={slas}
+              selectedKey={sla?.slaKey ?? ''}
+              readOnly={readOnly}
+              savedSlas={savedSlas}
+              onSelect={setSlaKey}
+              onChange={onSlasChange}
+              onSave={onSaveSla}
+              onDelete={onDeleteSla}
+            />
+          ) : null}
+          {kind === 'search' ? (
+            <SearchEditor
+              search={search}
+              queues={queues}
+              forms={forms}
+              workflow={workflow}
+              readOnly={readOnly}
+              savedSearch={savedSearch}
+              savedQueues={savedQueues}
+              onChange={onSearchChange}
+              onQueuesChange={onQueuesChange}
+              onSave={onSaveSearch}
+            />
+          ) : null}
+          {kind === 'bulk' ? (
+            <BulkEditor
+              bulkActions={bulkActions}
+              selectedKey={bulk?.bulkActionKey ?? ''}
+              stageKeys={stageKeys}
+              readOnly={readOnly}
+              savedBulkActions={savedBulkActions}
+              onSelect={setBulkKey}
+              onChange={onBulkActionsChange}
+              onSave={onSaveBulkAction}
+              onDelete={onDeleteBulkAction}
+            />
+          ) : null}
+          {kind === 'scheduled' ? (
+            <ScheduledEditor
+              scheduledActions={scheduledActions}
+              selectedKey={scheduled?.scheduledActionKey ?? ''}
+              stageKeys={stageKeys}
+              readOnly={readOnly}
+              savedScheduledActions={savedScheduledActions}
+              onSelect={setScheduledKey}
+              onChange={onScheduledActionsChange}
+              onSave={onSaveScheduledAction}
+              onDelete={onDeleteScheduledAction}
+            />
+          ) : null}
+        </div>
+      </div>
     </section>
   );
 }
@@ -1068,7 +1071,15 @@ function SearchEditor({
   function applySearchField(index: number, option: (typeof formOptions)[number], match: string, pii: boolean) {
     const previous = search.fields[index];
     const nextFields = search.fields.map((item, itemIndex) =>
-      itemIndex === index ? { ...searchFieldFromProjected(option), match, pii } : item
+      itemIndex === index
+        ? {
+            ...searchFieldFromProjected(option),
+            match,
+            pii,
+            useInSearch: previous?.useInSearch !== false,
+            useInDashboard: previous?.useInDashboard === true
+          }
+        : item
     );
     const nextSearch = { ...search, fields: nextFields };
     onChange(nextSearch);
@@ -1077,6 +1088,28 @@ function SearchEditor({
       nextQueues = removeSearchFieldProjection(nextQueues, previous, nextSearch);
     }
     onQueuesChange(nextQueues);
+  }
+
+  function patchExtraFlags(
+    index: number,
+    patch: Pick<SearchDefinition['fields'][number], 'useInSearch' | 'useInDashboard'>
+  ) {
+    const previous = search.fields[index];
+    if (!previous) {
+      return;
+    }
+    const nextField = { ...previous, ...patch };
+    const nextSearch = {
+      ...search,
+      fields: search.fields.map((item, itemIndex) => (itemIndex === index ? nextField : item))
+    };
+    onChange(nextSearch);
+    const matched = projectedOptionForSearchField(nextField, formOptions);
+    if (matched && (nextField.useInSearch !== false || nextField.useInDashboard === true)) {
+      onQueuesChange(ensureSearchFieldProjected(queues, matched));
+    } else if (matched) {
+      onQueuesChange(removeSearchFieldProjection(queues, previous, nextSearch));
+    }
   }
 
   function addSearchFilter() {
@@ -1111,7 +1144,7 @@ function SearchEditor({
     <CatalogKindView kind="search">
       <div className="optic-catalog-detail optic-catalog-detail-solo">
         <CatalogSection
-          title="Find a case filters"
+          title="Built-in Find a case fields"
           hint="These four inputs always appear on Workspace Find a case. Adjust match style or path when the default is wrong — you cannot remove them."
         >
           <ul className="optic-catalog-builtin-list">
@@ -1195,8 +1228,8 @@ function SearchEditor({
         </CatalogSection>
 
         <CatalogSection
-          title="More Find a case filters"
-          hint="Optional inputs on Workspace Find a case. Pick any field from this definition’s forms — it is copied onto a queue projection so search can match it."
+          title="Indexed form fields"
+          hint="Pick form fields to index. Use Find for Workspace Find a case, Dashboard for supervisor dimension filters, or both. Values are copied onto a queue projection."
         >
           {formOptions.length === 0 ? (
             <p className="optic-help optic-catalog-section-empty" role="status">
@@ -1224,8 +1257,8 @@ function SearchEditor({
                     </div>
                     <div className="optic-catalog-search-extra-row">
                       <CatalogField
-                        label="Find a case input"
-                        hint="Form value officers can type on Workspace."
+                        label="Form field"
+                        hint="Value to index from this definition’s forms."
                       >
                         <select
                           value={selectValue}
@@ -1259,7 +1292,7 @@ function SearchEditor({
                       </CatalogField>
                       <CatalogField
                         label="Match"
-                        hint="Contains is usually right."
+                        hint="Contains is usually right for Find; Exact prefix suits Dashboard dimensions."
                       >
                         <select
                           value={normalizeSearchMatch(field.match)}
@@ -1276,14 +1309,31 @@ function SearchEditor({
                         readOnly={readOnly}
                         onChange={(checked) => replaceExtra(index, { ...field, pii: checked })}
                       />
+                      <CatalogCheck
+                        label="Find a case"
+                        hint="Show as an extra filter on Workspace Find a case."
+                        checked={field.useInSearch !== false}
+                        readOnly={readOnly}
+                        onChange={(checked) => patchExtraFlags(index, { useInSearch: checked })}
+                      />
+                      <CatalogCheck
+                        label="Dashboard"
+                        hint="Use as a supervisor Dashboard dimension filter for this workload type."
+                        checked={field.useInDashboard === true}
+                        readOnly={readOnly}
+                        onChange={(checked) => patchExtraFlags(index, { useInDashboard: checked })}
+                      />
                     </div>
                     {!matched && formOptions.length > 0 ? (
                       <p className="optic-help" role="status">
-                        This filter is not linked to a form field. Choose one above.
+                        This field is not linked to a form field. Choose one above.
                       </p>
                     ) : matched ? (
                       <p className="optic-help">
-                        Officers will see “{matched.label}” on Find a case. Saved on a queue projection for matching.
+                        Indexed as “{matched.label}”
+                        {field.useInSearch !== false ? ' · Find a case' : ''}
+                        {field.useInDashboard === true ? ' · Dashboard' : ''}
+                        . Saved on a queue projection for matching.
                       </p>
                     ) : null}
                   </li>
@@ -1292,8 +1342,7 @@ function SearchEditor({
             </ul>
           ) : formOptions.length > 0 ? (
             <p className="optic-help optic-catalog-section-empty">
-              Only the four built-in filters are on Find a case. Add another from this workload’s forms (receipt
-              details, status, names, and so on).
+              No indexed form fields yet. Add one from this workload’s forms for Find a case, Dashboard, or both.
             </p>
           ) : null}
           <div className="optic-catalog-footer">
@@ -1302,7 +1351,7 @@ function SearchEditor({
               disabled={readOnly || (formOptions.length > 0 && availableFormOptions.length === 0)}
               onClick={() => addSearchFilter()}
             >
-              Add Find a case filter
+              Add indexed field
             </button>
             {onSave ? (
               <SaveDraftButton
@@ -1628,7 +1677,7 @@ function catalogKindLabel(kind: CatalogKind): string {
     return 'SLAs';
   }
   if (kind === 'search') {
-    return 'Search';
+    return 'Indexed fields';
   }
   if (kind === 'bulk') {
     return 'Bulk';
@@ -1647,7 +1696,7 @@ function catalogKindHelp(kind: CatalogKind): string {
     return 'How long work may sit before warning or breach. Attach an SLA key on a Workflow stage.';
   }
   if (kind === 'search') {
-    return 'Configures Find a case on Workspace. Four filters are always present; add more from workload form fields — they are projected onto a queue automatically for matching.';
+    return 'Indexed form and system fields for Find a case and Dashboard filters. Mark each extra field for Find, Dashboard, or both — values are projected for matching.';
   }
   if (kind === 'bulk') {
     return 'Multi-select actions on a queue. Stage must match a Workflow stage that uses that queue.';

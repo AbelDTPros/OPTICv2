@@ -297,6 +297,12 @@ export interface SearchFieldDefinition {
   path: string;
   match: 'EXACT_PREFIX' | 'FUZZY' | string;
   pii: boolean;
+  /**
+   * Indexed field consumers. Omitted flags default to Find-on / Dashboard-off
+   * so existing Catalog search configs keep working.
+   */
+  useInSearch?: boolean;
+  useInDashboard?: boolean;
 }
 
 export interface SearchDefinition {

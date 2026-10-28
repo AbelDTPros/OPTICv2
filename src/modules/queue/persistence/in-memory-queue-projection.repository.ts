@@ -56,6 +56,16 @@ export class InMemoryQueueProjectionRepository implements QueueProjectionReposit
     return { rows, total: rows.length };
   }
 
+  async listByDefinitionKeys(definitionKeys: string[]): Promise<QueueProjectionRecord[]> {
+    const keys = new Set(definitionKeys);
+    if (keys.size === 0) {
+      return [];
+    }
+    return [...this.rows.values()]
+      .filter((row) => keys.has(row.definitionKey))
+      .map((row) => structuredClone(row));
+  }
+
   async deleteByReleaseId(definitionReleaseId: number): Promise<number> {
     let removed = 0;
     for (const [id, row] of this.rows) {

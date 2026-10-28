@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type {
   ActionDefinition,
   QueueDefinition,
+  SlaDefinition,
   StageFormDefinition,
   WorkflowDefinition
 } from '../../../../src/modules/configuration/domain/types.js';
@@ -9,11 +10,18 @@ import type { DemoQueueRow } from '../queues/demo-queue.js';
 import { QueueScreen } from '../queues/QueueScreen.js';
 import { buildDraftCase, isDraftCase } from '../workspace/draft-case.js';
 import { OfficerCasePane } from '../workspace/OfficerCasePane.js';
-import { DesignerErrorBody, ErrorSummary } from '../ui/ErrorSummary.js';
+import {
+  resolveCaughtError,
+  retainFormErrorsAfterEdit,
+  type DisplayError
+} from '../api/apply-api-error.js';
+import type { FormFieldError } from '../dynamic-forms/DynamicFormRenderer.js';
+import { useFeatureFlags } from '../features/FeatureFlagsContext.js';
+import { CaughtErrorBanner } from '../ui/CaughtErrorBanner.js';
 import { ButtonLabel } from '../ui/Icon.js';
+import { StatusToast } from '../ui/StatusToast.js';
 import { WorkingAsField } from '../actors/WorkingAsField.js';
-import { getCurrentOfficerId, setCurrentOfficerId } from '../actors/demo-officers.js';
-import { formatCaughtApiError } from '../api/api-error.js';
+import { getCurrentOfficerId, OFFICER_ACTOR_ID, setCurrentOfficerId } from '../actors/demo-officers.js';
 import {
   isOfficerWorkQueue,
   isSystemOfficerQueue,
@@ -45,6 +53,7 @@ export function TryAsOfficerPanel({
   queues,
   forms,
   actions,
+  slas,
   enabled,
   errorSummary,
   onError
@@ -56,15 +65,39 @@ export function TryAsOfficerPanel({
   queues: Record<string, QueueDefinition>;
   forms: Record<string, StageFormDefinition>;
   actions?: Record<string, ActionDefinition>;
+  slas?: Record<string, SlaDefinition>;
   enabled: boolean;
-  errorSummary?: string;
-  onError: (message: string | undefined) => void;
+  errorSummary?: DisplayError;
+  onError: (message: DisplayError | undefined) => void;
 }) {
+  const { isEnabled } = useFeatureFlags();
+  const actorOverrideEnabled = isEnabled('ui.workspace.actor_override');
   const [items, setItems] = useState<WorkflowQueueItem[]>([]);
   const [selectedQueueKey, setSelectedQueueKey] = useState<string | undefined>();
   const [working, setWorking] = useState<WorkflowSummary | undefined>();
   const [busy, setBusy] = useState(false);
   const [actorId, setActorId] = useState(getCurrentOfficerId);
+  const [formFieldErrors, setFormFieldErrors] = useState<FormFieldError[]>([]);
+  const [statusToast, setStatusToast] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (actorOverrideEnabled) {
+      return;
+    }
+    setActorId(OFFICER_ACTOR_ID);
+    setCurrentOfficerId(OFFICER_ACTOR_ID);
+  }, [actorOverrideEnabled]);
+
+  function clearTryErrors() {
+    setFormFieldErrors([]);
+    onError(undefined);
+  }
+
+  function applyTryError(error: unknown) {
+    const resolved = resolveCaughtError(error, 'The trial desk request failed.');
+    setFormFieldErrors(resolved.formErrors);
+    onError(resolved.banner);
+  }
 
   function chooseOfficer(next: string) {
     setActorId(next);
@@ -94,11 +127,11 @@ export function TryAsOfficerPanel({
           return;
         }
         setItems(page.items);
-        onError(undefined);
+        clearTryErrors();
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          onError(formatTryError(error));
+          applyTryError(error);
         }
       })
       .finally(() => {
@@ -125,7 +158,7 @@ export function TryAsOfficerPanel({
   const selectedQueue = officerQueues.find((queue) => queue.queueKey === selectedQueueKey);
   const queueItems = selectedQueue ? itemsInQueue(selectedQueue, workflow, items, actorId) : [];
   const queuePage = selectedQueue
-    ? trialQueuePage(selectedQueue, queueItems, definitionKey, version, workflow)
+    ? trialQueuePage(selectedQueue, queueItems, definitionKey, version, workflow, 1, {}, actorId, slas)
     : undefined;
   const showWork = Boolean(working);
 
@@ -138,10 +171,10 @@ export function TryAsOfficerPanel({
   async function run(work: () => Promise<void>) {
     setBusy(true);
     try {
-      onError(undefined);
+      clearTryErrors();
       await work();
     } catch (error: unknown) {
-      onError(formatTryError(error));
+      applyTryError(error);
     } finally {
       setBusy(false);
     }
@@ -256,6 +289,10 @@ export function TryAsOfficerPanel({
         dataPatch
       );
       await refreshItems();
+      const stage = next.workflow.currentStageLabel || next.workflow.currentStageKey;
+      setStatusToast(
+        actionKey.toUpperCase().includes('SAVE') ? 'Draft saved' : `Moved to ${stage}`
+      );
       if (isTerminalStage(workflow, next)) {
         setSelectedQueueKey(SYSTEM_QUEUE_COMPLETED);
         setWorking(next);
@@ -294,16 +331,20 @@ export function TryAsOfficerPanel({
           >
             <ButtonLabel icon="live">New work arrives</ButtonLabel>
           </button>
-          <WorkingAsField value={actorId} onChange={chooseOfficer} />
+          <WorkingAsField
+            label="Signed in as"
+            value={actorId}
+            onChange={chooseOfficer}
+            readOnly={!actorOverrideEnabled}
+          />
         </div>
       </header>
-      {errorSummary ? (
-        <ErrorSummary key={errorSummary} focus>
-          <DesignerErrorBody message={errorSummary} />
-        </ErrorSummary>
-      ) : null}
+      <CaughtErrorBanner error={formFieldErrors.length > 0 ? undefined : errorSummary} />
+      <StatusToast message={statusToast} onDismiss={() => setStatusToast(undefined)} />
       {!enabled ? (
-        <p className="optic-help">Open or create a draft first. Try uses the saved release, not unsaved canvas edits.</p>
+        <p className="optic-help" role="status">
+          Open or create a draft first. Try uses the saved release, not unsaved canvas edits.
+        </p>
       ) : null}
       <div className="optic-try-desk">
         {officerQueues.length > 0 ? (
@@ -326,7 +367,9 @@ export function TryAsOfficerPanel({
             })}
           </nav>
         ) : (
-          <p className="optic-help">No officer queues yet. Give each live stage a Catalog queue and save.</p>
+          <p className="optic-help" role="status">
+            No officer queues yet. Give each live stage a Catalog queue and save.
+          </p>
         )}
         {showWork && working ? (
           <OfficerCasePane
@@ -334,10 +377,20 @@ export function TryAsOfficerPanel({
             workflow={workflow}
             forms={forms}
             busy={busy}
+            formErrors={formFieldErrors}
+            onFormEdit={(previous, next) => {
+              if (formFieldErrors.length === 0) {
+                return;
+              }
+              setFormFieldErrors((current) => retainFormErrorsAfterEdit(current, previous, next));
+            }}
             onComplete={(actionKey, dataPatch) => void completeAction(actionKey, dataPatch)}
             onAssign={() => void assignWorking()}
             onRelease={() => void releaseWorking()}
-            onClose={() => setWorking(undefined)}
+            onClose={() => {
+              clearTryErrors();
+              setWorking(undefined);
+            }}
           />
         ) : queuePage ? (
           <QueueScreen
@@ -353,8 +406,4 @@ export function TryAsOfficerPanel({
       </div>
     </section>
   );
-}
-
-function formatTryError(error: unknown): string {
-  return formatCaughtApiError(error, 'The trial desk request failed.');
 }

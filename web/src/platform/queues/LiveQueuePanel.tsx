@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getCurrentOfficerId } from '../actors/demo-officers.js';
-import { formatApiError } from '../api/api-error.js';
+import { asDisplayError, type DisplayError } from '../api/apply-api-error.js';
 import type { DemoBulkResult, DemoQueuePage, DemoQueueRow } from './demo-queue.js';
 import {
   assignFromQueue,
   executeBulkAction,
   fetchQueuePage,
-  OpticApiError,
   reassignFromQueue,
   releaseFromQueue
 } from './optic-api.js';
@@ -17,7 +16,8 @@ const LIVE_DEFINITION_KEY = 'I_131_BULK';
 
 export function LiveQueuePanel() {
   const [queue, setQueue] = useState<DemoQueuePage | null>(null);
-  const [errorSummary, setErrorSummary] = useState<string | undefined>();
+  const [errorSummary, setErrorSummary] = useState<DisplayError | undefined>();
+  const [loading, setLoading] = useState(true);
   const [bulkResult, setBulkResult] = useState<DemoBulkResult | undefined>();
   const [query, setQuery] = useState<{
     page: number;
@@ -33,6 +33,7 @@ export function LiveQueuePanel() {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     reload()
       .then(() => {
         if (!cancelled) {
@@ -41,7 +42,12 @@ export function LiveQueuePanel() {
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          setErrorSummary(liveError(error));
+          setErrorSummary(asDisplayError(error, 'The API is not reachable. Start `npm run dev`, migrate, and `npm run seed:bulk`.'));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
         }
       });
     return () => {
@@ -55,7 +61,9 @@ export function LiveQueuePanel() {
       await work();
       await reload();
     } catch (error: unknown) {
-      setErrorSummary(liveError(error));
+      setErrorSummary(
+        asDisplayError(error, 'The API is not reachable. Start `npm run dev`, migrate, and `npm run seed:bulk`.')
+      );
     }
   }
 
@@ -64,6 +72,7 @@ export function LiveQueuePanel() {
       queue={queue ?? emptyLiveQueue()}
       actorId={getCurrentOfficerId()}
       errorSummary={errorSummary}
+      loading={loading && !queue}
       bulkResult={bulkResult}
       onAssign={(row) =>
         run(() =>
@@ -137,11 +146,4 @@ function emptyLiveQueue(): DemoQueuePage {
     appliedFilters: {},
     rows: []
   };
-}
-
-function liveError(error: unknown): string {
-  if (error instanceof OpticApiError) {
-    return formatApiError(error);
-  }
-  return 'The API is not reachable. Start `npm run dev`, migrate, and `npm run seed:bulk`.';
 }

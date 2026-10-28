@@ -1,14 +1,19 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { officerDisplayName } from '../actors/demo-officers.js';
-import { ErrorSummary } from '../ui/ErrorSummary.js';
+import type { DisplayError } from '../api/apply-api-error.js';
+import { TrackingIdLinkWithCopy } from '../tracking/TrackingIdDisplay.js';
+import { CaughtErrorBanner } from '../ui/CaughtErrorBanner.js';
 import { ButtonLabel, Icon } from '../ui/Icon.js';
+import { PagerControls } from '../ui/PagerControls.js';
+import { formatSlaStateLabel, slaStateTone } from '../ui/sla-label.js';
 import type { DemoBulkAction, DemoBulkResult, DemoQueuePage, DemoQueueRow } from './demo-queue.js';
 import { ReassignDialog } from './ReassignDialog.js';
 
 export interface QueueScreenProps {
   queue: DemoQueuePage;
   actorId?: string;
-  errorSummary?: string;
+  errorSummary?: DisplayError;
+  loading?: boolean;
   bulkResult?: DemoBulkResult;
   emptyHint?: string;
   onFindCase?: () => void;
@@ -28,6 +33,7 @@ export function QueueScreen({
   queue,
   actorId,
   errorSummary,
+  loading,
   bulkResult,
   emptyHint,
   onFindCase,
@@ -64,6 +70,21 @@ export function QueueScreen({
   const extraColumns = 1 + (hasRowActions ? 1 : 0) + (canBulk ? 1 : 0);
   const headingId = headingLevel === 1 ? 'queue-heading' : `queue-${queue.queueKey}-heading`;
   const TitleTag = headingLevel === 1 ? 'h1' : 'h2';
+  const activeFilterChips = useMemo(() => {
+    return queue.filters
+      .map((filter) => {
+        const raw = (queue.appliedFilters[filter.key] ?? '').trim();
+        if (!raw) {
+          return null;
+        }
+        return {
+          key: filter.key,
+          label: filter.label,
+          valueLabel: filterValueLabel(filter.key, raw)
+        };
+      })
+      .filter((chip): chip is { key: string; label: string; valueLabel: string } => chip != null);
+  }, [queue.appliedFilters, queue.filters]);
 
   return (
     <section className="optic-queue" aria-labelledby={headingId}>
@@ -78,10 +99,11 @@ export function QueueScreen({
         </p>
       </header>
 
-      {errorSummary ? (
-        <ErrorSummary key={errorSummary} focus>
-          <p>{errorSummary}</p>
-        </ErrorSummary>
+      <CaughtErrorBanner error={errorSummary} />
+      {loading ? (
+        <p className="optic-help" role="status" aria-live="polite">
+          Loading queue…
+        </p>
       ) : null}
 
       {/* Always reserve filter chrome height so switching queues does not jump the table. */}
@@ -126,6 +148,35 @@ export function QueueScreen({
               </div>
             )}
           </div>
+          {activeFilterChips.length > 0 ? (
+            <div className="optic-queue-filter-chips" aria-label="Active filters">
+              {activeFilterChips.map((chip) => (
+                <button
+                  key={chip.key}
+                  type="button"
+                  className="optic-queue-filter-chip"
+                  onClick={() => onFilterChange?.(chip.key, '')}
+                >
+                  <span>
+                    {chip.label}: {chip.valueLabel}
+                  </span>
+                  <span aria-hidden="true">×</span>
+                  <span className="optic-visually-hidden">Clear {chip.label} filter</span>
+                </button>
+              ))}
+              <button
+                type="button"
+                className="optic-queue-filter-clear"
+                onClick={() => {
+                  for (const chip of activeFilterChips) {
+                    onFilterChange?.(chip.key, '');
+                  }
+                }}
+              >
+                Clear all
+              </button>
+            </div>
+          ) : null}
         </fieldset>
       </form>
 
@@ -184,13 +235,13 @@ export function QueueScreen({
             {queue.rows.length === 0 ? (
               <tr>
                 <td colSpan={queue.columns.length + extraColumns}>
-                  <div className="optic-queue-empty">
+                  <div className="optic-queue-empty" role="status">
                     <span className="optic-empty-inline">
                       <Icon name="inbox" />
-                      {emptyHint ?? 'No items match this queue.'}
+                      {loading ? 'Loading queue…' : (emptyHint ?? 'No items match this queue.')}
                     </span>
-                    {onFindCase ? (
-                      <button type="button" className="optic-button-primary" onClick={onFindCase}>
+                    {!loading && onFindCase ? (
+                      <button type="button" className="optic-button-secondary" onClick={onFindCase}>
                         <ButtonLabel icon="search">Find a case</ButtonLabel>
                       </button>
                     ) : null}
@@ -243,17 +294,11 @@ export function QueueScreen({
                       key={column.key}
                       className={column.key === 'trackingId' ? 'optic-queue-tracking' : undefined}
                     >
-                      {column.key === 'trackingId' && rowOpens ? (
-                        <button
-                          type="button"
-                          className="optic-queue-tracking-open"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onOpen?.(row);
-                          }}
-                        >
-                          {formatCell(column.key, row.values[column.key])}
-                        </button>
+                      {column.key === 'trackingId' ? (
+                        <TrackingIdLinkWithCopy
+                          trackingId={row.trackingId}
+                          onOpen={rowOpens ? () => onOpen?.(row) : undefined}
+                        />
                       ) : (
                         formatCell(column.key, row.values[column.key])
                       )}
@@ -416,25 +461,14 @@ export function QueueScreen({
         </div>
       ) : null}
 
-      <nav className="optic-queue-pager" aria-label="Queue pages">
-        <button
-          type="button"
-          disabled={queue.page <= 1}
-          onClick={() => onPageChange?.(queue.page - 1)}
-        >
-          <ButtonLabel icon="chevronLeft">Previous</ButtonLabel>
-        </button>
-        <p>
-          Page {queue.page} of {totalPages}
-        </p>
-        <button
-          type="button"
-          disabled={queue.page >= totalPages}
-          onClick={() => onPageChange?.(queue.page + 1)}
-        >
-          <ButtonLabel icon="chevronRight">Next</ButtonLabel>
-        </button>
-      </nav>
+      <div className="optic-queue-pager">
+        <PagerControls
+          page={queue.page}
+          totalPages={totalPages}
+          ariaLabel="Queue pages"
+          onPageChange={(next) => onPageChange?.(next)}
+        />
+      </div>
       {reassigning && onReassign ? (
         <ReassignDialog
           trackingId={reassigning.trackingId}
@@ -466,6 +500,21 @@ function rowNumber(page: number, pageSize: number, index: number): number {
   return (Math.max(1, page) - 1) * Math.max(0, pageSize) + index + 1;
 }
 
+function filterValueLabel(key: string, value: string): string {
+  if (key === 'assignedStatus') {
+    if (value === 'UNASSIGNED') {
+      return 'Unassigned';
+    }
+    if (value === 'ASSIGNED') {
+      return 'Assigned';
+    }
+    if (value === 'MINE') {
+      return 'Assigned to me';
+    }
+  }
+  return value;
+}
+
 function formatCell(column: string, value: string | number | null | undefined): ReactNode {
   if (value == null || value === '') {
     if (column === 'assignedTo' || column === 'assignedStatus') {
@@ -484,6 +533,17 @@ function formatCell(column: string, value: string | number | null | undefined): 
       <span className="optic-chip optic-chip-assigned" title={actorId}>
         <Icon name="user" />
         {officerDisplayName(actorId)}
+      </span>
+    );
+  }
+  if (column === 'slaState') {
+    const label = formatSlaStateLabel(String(value));
+    if (!label) {
+      return '—';
+    }
+    return (
+      <span className="optic-sla-badge" data-tone={slaStateTone(String(value))}>
+        {label}
       </span>
     );
   }

@@ -1,3 +1,4 @@
+import { fieldNeedsProjection } from '../../configuration/domain/indexed-fields.js';
 import type { DefinitionRelease } from '../../configuration/domain/types.js';
 import { isEmptyEligibility, isEligibilityPredicate, type QueueEligibility } from './eligibility.js';
 import { queueFieldByKey, queueFieldBySource, type QueueFieldSpec } from './fields.js';
@@ -66,7 +67,7 @@ export function collectProjectionRequirements(release: DefinitionRelease): Proje
   }
 
   for (const searchField of release.search.fields) {
-    if (searchField.source === 'BUSINESS_DATA') {
+    if (searchField.source === 'BUSINESS_DATA' && fieldNeedsProjection(searchField)) {
       const fromPath = pathToFieldKey(searchField.path);
       add(queueFieldByKey(fromPath) ?? queueFieldByKey(searchField.fieldKey), `search.${searchField.fieldKey}`);
     }

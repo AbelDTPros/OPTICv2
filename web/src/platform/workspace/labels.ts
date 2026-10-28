@@ -8,12 +8,10 @@ export interface CaseLabel {
   trackingId: string;
   kindLabel: string;
   /**
-   * Business status line for workloads only (not instance ACTIVE/COMPLETED).
-   * Mail stickers omit this — stage already covers “Completed”.
+   * Business status value for workloads only (not instance ACTIVE/COMPLETED).
+   * Shown without a field caption — e.g. Accepted / Rejected.
    */
-  statusCaption?: string;
   statusText?: string;
-  stageLabel: string;
   payload: string;
 }
 
@@ -23,10 +21,7 @@ export function labelForSummary(summary: WorkflowSummary): CaseLabel {
     entityType: summary.entityType,
     trackingId: summary.trackingId,
     kindLabel: kindLabel(kindKeyFromDefinition(summary.definition.definitionKey)),
-    ...(workload
-      ? { statusCaption: 'Workload status', statusText: workloadStatusText(summary.businessData) }
-      : {}),
-    stageLabel: summary.workflow.currentStageLabel,
+    ...(workload ? { statusText: workloadStatusText(summary.businessData) } : {}),
     payload: buildScanPayload(summary.entityType, summary.trackingId)
   };
 }
@@ -102,17 +97,16 @@ export function printLabels(labels: CaseLabel[], qrByPayload: Record<string, str
   const stickers = labels
     .map((label) => {
       const qr = qrByPayload[label.payload] ?? '';
+      const status =
+        label.statusText?.trim()
+          ? `<p class="status">${escapeHtml(label.statusText.trim())}</p>`
+          : '';
       return `<article class="sticker">
         <div class="qr">${qr}</div>
         <div class="copy">
           <p class="kind">${escapeHtml(label.kindLabel)} · ${escapeHtml(label.entityType)}</p>
           <p class="tracking">${escapeHtml(label.trackingId)}</p>
-          ${
-            label.statusCaption
-              ? `<p class="status">${escapeHtml(label.statusCaption)}: ${escapeHtml(label.statusText || '—')}</p>`
-              : ''
-          }
-          <p class="stage">Stage: ${escapeHtml(label.stageLabel)}</p>
+          ${status}
         </div>
       </article>`;
     })
@@ -124,12 +118,12 @@ export function printLabels(labels: CaseLabel[], qrByPayload: Record<string, str
       .sheet { display: flex; flex-wrap: wrap; gap: 0.75rem; }
       .sticker { border: 2px solid #102a43; width: 3.4in; min-height: 1.5in; padding: 0.45rem; display: flex; gap: 0.6rem; page-break-inside: avoid; }
       .qr svg { width: 112px; height: 112px; display: block; }
-      .kind, .status, .stage { margin: 0 0 0.2rem; font-size: 0.85rem; }
+      .kind, .status { margin: 0 0 0.2rem; font-size: 0.85rem; }
       .tracking { margin: 0 0 0.35rem; font-size: 1.05rem; font-weight: 750; word-break: break-all; }
       @media print { body { margin: 0; } button { display: none; } }
     </style></head><body>
     <h1>Print these stickers and put them on the mail item and each application.</h1>
-    <p>Each sticker shows the tracking number and stage as text. Workload stickers also show workload status. The QR opens the same case when scanned.</p>
+    <p>Each sticker shows the tracking number as text. Workload stickers also show Accepted, Rejected, or similar status when set. The QR opens the same case when scanned.</p>
     <div class="sheet">${stickers}</div>
     </body></html>`);
   frame.document.close();

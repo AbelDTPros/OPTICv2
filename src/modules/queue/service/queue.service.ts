@@ -2,7 +2,7 @@ import { notFound, validationFailed } from '../../../platform/errors/app-error.j
 import type { ActorContext } from '../../../platform/security/actor.js';
 import type { AuthorizationPort } from '../../../platform/security/authorization-port.js';
 import { assignmentPermissions } from '../../configuration/domain/assignment-policy.js';
-import type { StageDefinition } from '../../configuration/domain/types.js';
+import type { SlaDefinition, StageDefinition } from '../../configuration/domain/types.js';
 import type { DefinitionLoader } from '../../configuration/definitions/definition-loader.js';
 import type { DefinitionRepository } from '../../configuration/persistence/definition.repository.js';
 import { assembleDefinitionRelease } from '../../configuration/service/assemble-release.js';
@@ -17,6 +17,7 @@ import {
   systemOfficerQueues
 } from '../domain/officer-queues.js';
 import { formatAgeInQueue } from '../domain/project.js';
+import { computeSlaState } from '../domain/sla-state.js';
 import type {
   CatalogedQueue,
   QueueBulkActionView,
@@ -165,10 +166,20 @@ export class QueueService {
       total: result.total,
       sort,
       appliedFilters,
-      rows: result.rows.map((row) => {
-        const pinned = pinnedByRelease.get(row.definitionReleaseId);
-        return toRowView(row, pageColumns, pinned);
-      })
+      rows: await Promise.all(
+        result.rows.map(async (row) => {
+          const pinned = pinnedByRelease.get(row.definitionReleaseId);
+          const liveRow = withFreshSlaState(row, pinned);
+          if (liveRow.slaState !== row.slaState) {
+            try {
+              await this.projections.upsert({ ...liveRow, updatedAt: new Date() });
+            } catch {
+              // Read path still returns fresh state even if persistence fails.
+            }
+          }
+          return toRowView(liveRow, pageColumns, pinned);
+        })
+      )
     };
   }
 
@@ -242,7 +253,8 @@ export class QueueService {
         columns: columns && columns.length > 0 ? columns : fallback,
         version: compiled.version,
         releaseId: compiled.releaseId,
-        stages: compiled.release.workflow.stages
+        stages: compiled.release.workflow.stages,
+        slas: compiled.release.slas ?? {}
       });
     }
     return pinned;
@@ -419,6 +431,7 @@ interface RowReleaseContext {
   version: string;
   releaseId: string;
   stages: StageDefinition[];
+  slas: Record<string, SlaDefinition>;
 }
 
 function toRowView(
@@ -452,6 +465,27 @@ function toRowView(
     pinnedColumns,
     values
   };
+}
+
+function withFreshSlaState(
+  row: QueueProjectionRecord,
+  pinned?: RowReleaseContext
+): QueueProjectionRecord {
+  if (!pinned) {
+    return row;
+  }
+  const stage = pinned.stages.find((item) => item.stageKey === row.currentStageKey);
+  const slaKey = stage?.slaKey?.trim();
+  const sla = slaKey ? pinned.slas[slaKey] : undefined;
+  const slaState = computeSlaState({
+    sla,
+    enteredStageAt: row.enteredStageAt,
+    currentStageKey: row.currentStageKey
+  });
+  if (slaState === row.slaState) {
+    return row;
+  }
+  return { ...row, slaState };
 }
 
 function uniqueColumns(...groups: string[][]): string[] {

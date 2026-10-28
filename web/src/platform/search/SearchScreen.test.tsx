@@ -184,9 +184,7 @@ describe('SearchScreen', () => {
     render(<SearchScreen compact openTrackingId="W-9001" onOpen={vi.fn()} />);
     await user.type(screen.getByLabelText('Tracking ID'), 'W-9');
     await user.click(screen.getByRole('button', { name: 'Search' }));
-    expect(await screen.findByRole('button', { name: 'Open WORKLOAD W-9001, row 1' })).toHaveAttribute(
-      'aria-current',
-      'true'
-    );
+    expect(await screen.findByRole('button', { name: 'Open WORKLOAD W-9001, row 1' })).toBeInTheDocument();
+    expect(document.querySelector('.optic-search-hit[aria-current="true"]')).toBeTruthy();
   });
 });

@@ -1,6 +1,7 @@
 import { assignmentPermissions } from '../../../../src/modules/configuration/domain/assignment-policy.js';
 import type {
   QueueDefinition,
+  SlaDefinition,
   StageFormDefinition,
   WorkflowDefinition
 } from '../../../../src/modules/configuration/domain/types.js';
@@ -11,6 +12,7 @@ import {
   orderedOfficerQueueKeys,
   systemOfficerQueues
 } from '../../../../src/modules/queue/domain/officer-queues.js';
+import { computeSlaState, resolveStageSla } from '../../../../src/modules/queue/domain/sla-state.js';
 import { getByJsonPath } from '../dynamic-forms/json-path.js';
 import type { DemoQueuePage } from '../queues/demo-queue.js';
 import { mintTrackingIdValue } from '../tracking/mint-tracking-id.js';
@@ -169,7 +171,8 @@ export function trialQueuePage(
   workflow?: WorkflowDefinition,
   page = 1,
   appliedFilters: Record<string, string> = {},
-  actorId?: string
+  actorId?: string,
+  slas?: Record<string, SlaDefinition>
 ): DemoQueuePage {
   const columns = (queue.columns.length > 0 ? queue.columns : ['trackingId', 'assignedTo', 'currentStageKey']).map(
     (key) => ({
@@ -232,7 +235,9 @@ export function trialQueuePage(
         assignedStatus: assigned ? 'ASSIGNED' : 'UNASSIGNED',
         enteredStageAt: item.enteredStageAt,
         rowVersion: item.rowVersion,
-        values: Object.fromEntries(columns.map((column) => [column.key, cellValue(column.key, item, queue)]))
+        values: Object.fromEntries(
+          columns.map((column) => [column.key, cellValue(column.key, item, queue, workflow, slas)])
+        )
       };
     })
   };
@@ -291,7 +296,13 @@ function filterValue(
   return cellValue(key, item, queue);
 }
 
-function cellValue(column: string, item: WorkflowQueueItem, queue: QueueDefinition): string | number | null {
+function cellValue(
+  column: string,
+  item: WorkflowQueueItem,
+  queue: QueueDefinition,
+  workflow?: WorkflowDefinition,
+  slas?: Record<string, SlaDefinition>
+): string | number | null {
   if (column === 'trackingId') {
     return item.trackingId;
   }
@@ -303,6 +314,20 @@ function cellValue(column: string, item: WorkflowQueueItem, queue: QueueDefiniti
   }
   if (column === 'enteredStageAt') {
     return item.enteredStageAt;
+  }
+  if (column === 'slaState') {
+    if (!workflow) {
+      return null;
+    }
+    const entered = new Date(item.enteredStageAt);
+    if (!Number.isFinite(entered.getTime())) {
+      return null;
+    }
+    return computeSlaState({
+      sla: resolveStageSla({ workflow, slas }, item.currentStageKey),
+      enteredStageAt: entered,
+      currentStageKey: item.currentStageKey
+    });
   }
   if (column === 'ageInQueue') {
     const entered = Date.parse(item.enteredStageAt);

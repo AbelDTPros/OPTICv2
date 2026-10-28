@@ -111,6 +111,26 @@ export class InMemoryAuditEventRepository implements AuditEventRepository {
     };
   }
 
+  async listRecentForDefinitions(
+    definitionKeys: string[],
+    eventTypes: string[],
+    limit: number
+  ): Promise<AuditEventRecord[]> {
+    const keys = new Set(definitionKeys);
+    const types = new Set(eventTypes);
+    const capped = Math.max(1, Math.min(50, Math.trunc(limit) || 15));
+    return [...this.events]
+      .filter(
+        (event) =>
+          event.definitionKey != null &&
+          keys.has(event.definitionKey) &&
+          types.has(event.eventType)
+      )
+      .sort((left, right) => (right.id ?? 0) - (left.id ?? 0))
+      .slice(0, capped)
+      .map((event) => structuredClone(event));
+  }
+
   async listAdminFilterOptions(): Promise<AuditFilterOptions> {
     const actorsByValue = new Map<string, AuditActorOption>();
     const definitionKeys = new Set<string>();

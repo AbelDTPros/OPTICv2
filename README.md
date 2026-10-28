@@ -1,4 +1,4 @@
-# OPTIC NextGen
+# OPTIC v2.0
 
 Configurable workflow platform for Mail, Workload, and future entities. A new workload type is onboarded through an immutable Definition Release rather than React or Node.js code changes.
 
@@ -18,7 +18,7 @@ Architecture, logging, and accessibility notes are kept current as slices land:
 
 **Slice 18 — Officer Workspace, tracking mint, labels, and scan**
 
-- Header is **Workspace** (officer product) and **Designer** (authoring). There is no Station product name.
+- Header is **Workspace** (officer product), **Dashboard** (supervisor ops KPIs), and **Designer** (authoring). There is no Station product name.
 - **Workspace** groups a **Workload Type** (mail + workload drafts or activated releases). **Try** walks saved drafts; **Live** uses activated queues. **Working as** is a name or email you type; assign, release, and Assigned to me use that value. **Reassign** asks who should receive the case. Queues show the stored assignee as entered.
 - **Find a case** sits at the top of the main pane (Tracking ID, Receipt number, Entity type, Stage, Assignee). Workload Type and queue nav stay on the left. Results are a stacked list with row numbers; click the row to open. **Clear** empties the fields and removes the list. A full scan or exact tracking ID opens immediately.
 - `GET /api/v1/search?q=` matches tracking ID only. `receiptNumber=` is a separate prefix on the projected receipt column.

@@ -3,7 +3,9 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FeatureFlagsProvider } from '../features/FeatureFlagsContext.js';
 import * as featureApi from '../features/feature-api.js';
+import { requestAppView } from '../navigation/app-navigation.js';
 import * as auditApi from './audit-api.js';
+import * as healthApi from './health-api.js';
 import { AdminWorkspace } from './AdminWorkspace.js';
 
 describe('AdminWorkspace', () => {
@@ -30,6 +32,12 @@ describe('AdminWorkspace', () => {
       actors: [],
       definitionKeys: []
     });
+    vi.spyOn(healthApi, 'fetchHealthReady').mockResolvedValue({
+      status: 'ok',
+      process: 'up',
+      database: 'up',
+      httpStatus: 200
+    });
   });
 
   it('navigates Admin sections from the left menubar', async () => {
@@ -54,9 +62,41 @@ describe('AdminWorkspace', () => {
 
     await user.click(screen.getByRole('button', { name: 'Integrations' }));
     expect(screen.getByRole('heading', { name: 'Integrations' })).toBeInTheDocument();
-    expect(screen.getByText(/Coming next/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Platform status' })).toBeInTheDocument();
+    expect(await screen.findByText('Ready')).toBeInTheDocument();
+    expect(screen.getByText('Outbound integrations')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Features' }));
     expect(screen.getByRole('heading', { name: 'Product features' })).toBeInTheDocument();
+  });
+
+  it('shows degraded platform status when the database is down', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(healthApi, 'fetchHealthReady').mockResolvedValue({
+      status: 'unavailable',
+      process: 'up',
+      database: 'down',
+      httpStatus: 503
+    });
+    render(
+      <FeatureFlagsProvider>
+        <AdminWorkspace />
+      </FeatureFlagsProvider>
+    );
+    await user.click(screen.getByRole('button', { name: 'Integrations' }));
+    expect(await screen.findByText('Degraded')).toBeInTheDocument();
+    expect(screen.getByText('Down')).toBeInTheDocument();
+  });
+
+  it('opens an Admin section from a Jump to… focus hint', async () => {
+    render(
+      <FeatureFlagsProvider>
+        <AdminWorkspace />
+      </FeatureFlagsProvider>
+    );
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Product features' })).toBeInTheDocument());
+
+    requestAppView('admin', undefined, undefined, { section: 'integrations' });
+    expect(await screen.findByRole('heading', { name: 'Integrations' })).toBeInTheDocument();
   });
 });

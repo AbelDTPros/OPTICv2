@@ -87,4 +87,10 @@ export interface AuditEventRepository {
   listByCorrelationId(correlationId: string, executor?: QueryExecutor): Promise<AuditEventRecord[]>;
   listAdmin(query: AuditListQuery, executor?: QueryExecutor): Promise<AuditListResult>;
   listAdminFilterOptions(executor?: QueryExecutor): Promise<AuditFilterOptions>;
+  listRecentForDefinitions(
+    definitionKeys: string[],
+    eventTypes: string[],
+    limit: number,
+    executor?: QueryExecutor
+  ): Promise<AuditEventRecord[]>;
 }

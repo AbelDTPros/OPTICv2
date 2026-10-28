@@ -1,5 +1,6 @@
 import type { FormFieldDefinition, JsonSchema } from '../../../../src/modules/configuration/domain/types.js';
 import { describedBy, fieldErrorId, fieldHelpId, fieldInputId } from '../accessibility/field-ids.js';
+import { TrackingIdLinkWithCopy } from '../tracking/TrackingIdDisplay.js';
 import type { FieldRuntimeState } from './resolve-field-state.js';
 
 export interface FieldError {
@@ -209,8 +210,17 @@ function renderInput(field: FormFieldDefinition, props: InputProps) {
           onChange={(event) => props.onChange(event.target.value.toUpperCase())}
         />
       );
-    case 'READ_ONLY_VALUE':
     case 'TRACKING_ID_DISPLAY':
+      return text ? (
+        <div id={props.id} className="optic-readonly optic-tracking-readonly">
+          <TrackingIdLinkWithCopy trackingId={text} />
+        </div>
+      ) : (
+        <p id={props.id} className="optic-readonly">
+          —
+        </p>
+      );
+    case 'READ_ONLY_VALUE':
     case 'USER_DISPLAY':
       return (
         <p id={props.id} className="optic-readonly">
@@ -258,6 +268,7 @@ function renderRadioGroup(
   const text = stringify(props.value);
   return (
     <div
+      id={props.id}
       role="radiogroup"
       aria-labelledby={`${props.id}-legend`}
       aria-required={props.required || undefined}

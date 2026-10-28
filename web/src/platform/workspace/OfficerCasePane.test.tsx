@@ -114,7 +114,7 @@ function workloadSummary(): WorkflowSummary {
 }
 
 describe('OfficerCasePane', () => {
-  it('shows the officer on each stage history row', async () => {
+  it('shows a stage history timeline with officer and jump to earlier screen', async () => {
     const user = userEvent.setup();
     const working = workloadSummary();
     working.visits = [
@@ -144,8 +144,20 @@ describe('OfficerCasePane', () => {
     );
     await user.click(screen.getByText(/Stage history \(2\)/));
     const history = screen.getByText(/Stage history \(2\)/).closest('details');
-    expect(history).toHaveTextContent('Ready For Scanning → Ready for Data Entry · scanner@example.gov');
-    expect(history).toHaveTextContent('Ready for Data Entry (open) · officer@example.gov');
+    expect(history).toBeTruthy();
+    expect(history).toHaveTextContent(/Ready for Scanning/i);
+    expect(history).toHaveTextContent('scanner@example.gov');
+    expect(history).toHaveTextContent(/Moved to Ready for Data Entry/i);
+    expect(history).toHaveTextContent('officer@example.gov');
+    expect(history).toHaveTextContent('Current');
+    const jump = within(history as HTMLElement).getByRole('button', {
+      name: /Ready For Scanning/i
+    });
+    await user.click(jump);
+    const stageTabs = screen.getByRole('navigation', { name: 'Stage screens' });
+    expect(
+      within(stageTabs).getByRole('button', { name: /READY_FOR_SCANNING|Ready For Scanning/i })
+    ).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('shows parent mail screens on a workload so the officer can see the envelope', async () => {
@@ -164,10 +176,12 @@ describe('OfficerCasePane', () => {
     expect(screen.getByRole('status', { name: 'Case status' })).toHaveTextContent('ACTIVE');
     expect(screen.getByText('This case')).toBeInTheDocument();
     expect(screen.getByText(/Linked mail item/i)).toBeInTheDocument();
-    expect(screen.getByText('MAIL-ENVELOPE', { selector: 'strong' })).toBeInTheDocument();
+    expect(screen.getAllByText('MAIL-ENVELOPE').length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: 'Copy tracking id MAIL-ENVELOPE' }).length).toBeGreaterThan(0);
     expect(screen.getByRole('navigation', { name: 'Mail item screens' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Doc Prep' }));
-    expect(screen.getByText(/from mail item MAIL-ENVELOPE/i)).toBeInTheDocument();
+    expect(screen.getByText(/from mail item/i)).toBeInTheDocument();
+    expect(screen.getAllByText('MAIL-ENVELOPE').length).toBeGreaterThan(0);
     expect(screen.getByDisplayValue('MAIL-RECEIPT')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Release' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Print labels' })).toBeInTheDocument();

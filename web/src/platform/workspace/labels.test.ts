@@ -42,16 +42,14 @@ describe('workspace labels', () => {
   it('encodes entity type and tracking id on the sticker payload', () => {
     expect(labelForSummary(workload).payload).toBe('OPTIC:WORKLOAD:WL-1');
     expect(labelForSummary(workload).kindLabel).toBe('I-407');
-    expect(labelForSummary(workload).statusCaption).toBe('Workload status');
     expect(labelForSummary(workload).statusText).toBe('Accepted');
-    expect(labelForSummary(workload).stageLabel).toBe('Ready for Data Entry');
+    expect(labelForSummary(workload)).not.toHaveProperty('stageLabel');
   });
 
-  it('omits instance ACTIVE/COMPLETED from mail stickers (stage is enough)', () => {
+  it('omits status and stage from mail stickers', () => {
     const label = labelForSummary(mail);
-    expect(label.statusCaption).toBeUndefined();
     expect(label.statusText).toBeUndefined();
-    expect(label.stageLabel).toBe('Completed');
+    expect(label).not.toHaveProperty('stageLabel');
   });
 
   it('reads shared $.workload.workloadStatus when present', () => {
@@ -87,6 +85,10 @@ describe('workspace labels', () => {
     printLabels([labelForSummary(workload)], { 'OPTIC:WORKLOAD:WL-1': '<svg></svg>' });
     expect(open).toHaveBeenCalledWith('', '_blank', 'width=720,height=640');
     expect(write).toHaveBeenCalled();
+    const html = String(write.mock.calls[0]?.[0] ?? '');
+    expect(html).toContain('Accepted');
+    expect(html).not.toMatch(/Workload status/i);
+    expect(html).not.toMatch(/Stage:/i);
     expect(frame.opener).toBeNull();
     expect(print).toHaveBeenCalled();
   });

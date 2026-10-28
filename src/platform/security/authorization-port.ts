@@ -22,6 +22,7 @@ export interface AuthorizationPort {
   assertCanReadFeatureFlags(actor: ActorContext): Promise<void>;
   assertCanManageFeatureFlags(actor: ActorContext): Promise<void>;
   assertCanReadAudit(actor: ActorContext): Promise<void>;
+  assertCanReadSupervisorDashboard(actor: ActorContext): Promise<void>;
 }
 
 const SUPERVISOR_ROLES = new Set(['SUPERVISOR', 'ADMIN']);
@@ -137,6 +138,15 @@ export class AuthenticatedActorAuthorization implements AuthorizationPort {
   async assertCanReadAudit(actor: ActorContext): Promise<void> {
     if (!actor.actorId || !actor.roles.some((role) => FEATURE_ADMIN_ROLES.has(role.toUpperCase()))) {
       throw forbidden('Audit trail read requires an ADMIN role.', 'OPTIC-AUTHZ-40305');
+    }
+  }
+
+  async assertCanReadSupervisorDashboard(actor: ActorContext): Promise<void> {
+    if (!actor.actorId || !actor.roles.some((role) => SUPERVISOR_ROLES.has(role.toUpperCase()))) {
+      throw forbidden(
+        'Supervisor dashboard requires a SUPERVISOR or ADMIN role.',
+        'OPTIC-AUTHZ-40306'
+      );
     }
   }
 }

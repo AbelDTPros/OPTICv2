@@ -7,9 +7,15 @@ import {
   orderedOfficerQueueKeys
 } from '../../../../src/modules/queue/domain/officer-queues.js';
 import { WorkingAsField } from '../actors/WorkingAsField.js';
-import { getCurrentOfficerId, setCurrentOfficerId } from '../actors/demo-officers.js';
-import { formatCaughtApiError } from '../api/api-error.js';
-import { extraSearchFields } from '../designers/catalog-model.js';
+import { getCurrentOfficerId, OFFICER_ACTOR_ID, setCurrentOfficerId } from '../actors/demo-officers.js';
+import {
+  resolveCaughtError,
+  retainFormErrorsAfterEdit,
+  type DisplayError
+} from '../api/apply-api-error.js';
+import type { FormFieldError } from '../dynamic-forms/DynamicFormRenderer.js';
+import { CaughtErrorBanner } from '../ui/CaughtErrorBanner.js';
+import { extraFindSearchFields } from '../designers/catalog-model.js';
 import { getRelease, listDefinitions, listReleaseCatalog, type DesignerRelease } from '../designers/config-api.js';
 import { itemsInQueue, listOfficerQueues, nextTrackingId, trialQueuePage } from '../designers/try-queue.js';
 import {
@@ -37,19 +43,101 @@ import { useFeatureFlags } from '../features/FeatureFlagsContext.js';
 import { QueueScreen } from '../queues/QueueScreen.js';
 import { SearchScreen } from '../search/SearchScreen.js';
 import type { SearchHit } from '../search/search-api.js';
-import { DesignerErrorBody, ErrorSummary } from '../ui/ErrorSummary.js';
+import { TrackingIdLinkWithCopy } from '../tracking/TrackingIdDisplay.js';
 import { ButtonLabel } from '../ui/Icon.js';
 import { StatusToast } from '../ui/StatusToast.js';
 import { OFFICER_USER_GUIDE } from '../guides/guide-sources.js';
 import { UserGuideDialog } from '../guides/UserGuideDialog.js';
 import { buildDraftCase, isDraftCase } from './draft-case.js';
-import { groupWorkKinds, intakeMember, type KindMember, type WorkKind } from './kind-catalog.js';
+import {
+  groupWorkKinds,
+  intakeMember,
+  kindKeyFromDefinition,
+  type KindMember,
+  type WorkKind
+} from './kind-catalog.js';
 import { OfficerCasePane } from './OfficerCasePane.js';
+import {
+  APP_NAVIGATE_EVENT,
+  consumeWorkspaceFocusHint,
+  type WorkspaceFocusHint
+} from '../navigation/app-navigation.js';
+import {
+  resolveWorkloadTypeSelection,
+  writeWorkloadTypePref
+} from './workload-type-pref.js';
 import { WorkloadTypeSelect } from './WorkloadTypeSelect.js';
 
 type WorkspaceMode = 'try' | 'live';
 
 const NO_SEARCH_EXTRA_FIELDS: SearchFieldDefinition[] = [];
+const RECENT_CASES_KEY = 'optic.workspace.recentCases';
+const FIND_EXPANDED_PREF_KEY = 'optic.workspace.findExpandedPref';
+const MAX_RECENT_CASES = 5;
+
+type RecentCase = { trackingId: string; entityType: string };
+
+function readRecentCases(): RecentCase[] {
+  try {
+    const raw = window.localStorage.getItem(RECENT_CASES_KEY);
+    if (!raw) {
+      return [];
+    }
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .filter(
+        (item): item is RecentCase =>
+          Boolean(item) &&
+          typeof item === 'object' &&
+          typeof (item as RecentCase).trackingId === 'string' &&
+          typeof (item as RecentCase).entityType === 'string'
+      )
+      .slice(0, MAX_RECENT_CASES);
+  } catch {
+    return [];
+  }
+}
+
+function readFindExpandedPref(): boolean {
+  try {
+    const stored = window.localStorage.getItem(FIND_EXPANDED_PREF_KEY);
+    if (stored === '0') {
+      return false;
+    }
+    if (stored === '1') {
+      return true;
+    }
+  } catch {
+    // ignore
+  }
+  return true;
+}
+
+function queueMatchesStage(queueKey: string, stageKey: string, stageQueueKey?: string): boolean {
+  const queue = queueKey.toUpperCase();
+  const stage = stageKey.toUpperCase();
+  const authored = (stageQueueKey ?? '').toUpperCase();
+  if (authored && queue === authored) {
+    return true;
+  }
+  return (
+    queue === stage ||
+    queue === `QUEUE_${stage}` ||
+    queue.endsWith(`_${stage}`) ||
+    stage.endsWith(`_${queue}`)
+  );
+}
+
+function stageQueueKeyFromRelease(
+  release: DesignerRelease | undefined,
+  stageKey: string
+): string | undefined {
+  const stage = release?.workflow?.stages?.find((item) => item.stageKey === stageKey);
+  return stage?.queueKey?.trim() || undefined;
+}
 
 interface TryDesk {
   member: KindMember;
@@ -62,14 +150,11 @@ interface SelectedQueue {
   queueKey: string;
 }
 
-function focusFindCase(): void {
-  document.getElementById('optic-find-case-tracking')?.focus();
-}
-
 export function OfficerWorkspace() {
   const { isEnabled } = useFeatureFlags();
   const tryModeEnabled = isEnabled('ui.workspace.try_mode');
   const searchEnabled = isEnabled('ui.workspace.search') && isEnabled('api.search');
+  const actorOverrideEnabled = isEnabled('ui.workspace.actor_override');
   const [mode, setMode] = useState<WorkspaceMode>('live');
 
   useEffect(() => {
@@ -87,12 +172,73 @@ export function OfficerWorkspace() {
   const [listFilters, setListFilters] = useState<Record<string, string>>({});
   const [kindSearchReleases, setKindSearchReleases] = useState<Record<string, DesignerRelease>>({});
   const [working, setWorking] = useState<WorkflowSummary | undefined>();
-  const [errorSummary, setErrorSummary] = useState<string | undefined>();
+  const [errorBanner, setErrorBanner] = useState<DisplayError | undefined>();
+  const [formFieldErrors, setFormFieldErrors] = useState<FormFieldError[]>([]);
   const [statusToast, setStatusToast] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
+
+  function clearWorkspaceErrors() {
+    setErrorBanner(undefined);
+    setFormFieldErrors([]);
+  }
+
+  function applyWorkspaceError(error: unknown) {
+    const resolved = resolveCaughtError(error, 'The officer workspace could not load.');
+    setFormFieldErrors(resolved.formErrors);
+    setErrorBanner(resolved.banner);
+  }
   const [actorId, setActorId] = useState(getCurrentOfficerId);
   const [guideOpen, setGuideOpen] = useState(false);
+
+  useEffect(() => {
+    if (actorOverrideEnabled) {
+      return;
+    }
+    setActorId(OFFICER_ACTOR_ID);
+    setCurrentOfficerId(OFFICER_ACTOR_ID);
+  }, [actorOverrideEnabled]);
+  const [findExpanded, setFindExpanded] = useState(readFindExpandedPref);
+  const [recentCases, setRecentCases] = useState<RecentCase[]>(readRecentCases);
   const queueScrollLockRef = useRef<number | null>(null);
+  const findFocusPendingRef = useRef(false);
+  const focusHintAppliedRef = useRef(false);
+  const pendingFocusRef = useRef<ReturnType<typeof consumeWorkspaceFocusHint> | null | undefined>(
+    undefined
+  );
+
+  function setFindExpandedPref(next: boolean) {
+    setFindExpanded(next);
+    try {
+      window.localStorage.setItem(FIND_EXPANDED_PREF_KEY, next ? '1' : '0');
+    } catch {
+      // ignore
+    }
+  }
+
+  function focusFindCase(): void {
+    setFindExpandedPref(true);
+    findFocusPendingRef.current = true;
+  }
+
+  function rememberRecentCase(trackingId: string, entityType: string) {
+    setRecentCases((current) => {
+      const next: RecentCase[] = [
+        { trackingId, entityType },
+        ...current.filter((item) => item.trackingId !== trackingId)
+      ].slice(0, MAX_RECENT_CASES);
+      try {
+        window.localStorage.setItem(RECENT_CASES_KEY, JSON.stringify(next));
+      } catch {
+        // ignore storage failures
+      }
+      return next;
+    });
+  }
+
+  function openWorkingCase(summary: WorkflowSummary) {
+    setWorking(summary);
+    rememberRecentCase(summary.trackingId, summary.entityType);
+  }
 
   function chooseOfficer(next: string) {
     setActorId(next);
@@ -117,7 +263,9 @@ export function OfficerWorkspace() {
   const searchExtraFields = useMemo(() => {
     const byKey = new Map<string, SearchFieldDefinition>();
     for (const release of Object.values(kindSearchReleases)) {
-      for (const { field } of extraSearchFields(release.search ?? { searchKey: 'DEFAULT', fields: [] })) {
+      for (const { field } of extraFindSearchFields(
+        release.search ?? { searchKey: 'DEFAULT', fields: [] }
+      )) {
         if (!byKey.has(field.fieldKey)) {
           byKey.set(field.fieldKey, field);
         }
@@ -136,14 +284,12 @@ export function OfficerWorkspace() {
         }
         const next = groupWorkKinds(definitions, releases, mode);
         setKinds(next);
-        setSelectedKindKey((current) =>
-          current && next.some((kind) => kind.kindKey === current) ? current : undefined
-        );
-        setErrorSummary(undefined);
+        setSelectedKindKey((current) => resolveWorkloadTypeSelection(next, current));
+        clearWorkspaceErrors();
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          setErrorSummary(formatWorkspaceError(error));
+          applyWorkspaceError(error);
         }
       })
       .finally(() => {
@@ -155,6 +301,35 @@ export function OfficerWorkspace() {
       cancelled = true;
     };
   }, [mode]);
+
+  useEffect(() => {
+    if (working) {
+      setFindExpanded(false);
+    } else {
+      setFindExpanded(readFindExpandedPref());
+    }
+  }, [working?.trackingId]);
+
+  useEffect(() => {
+    if (!working) {
+      return;
+    }
+    const derivedKind = kindKeyFromDefinition(working.definition.definitionKey);
+    if (kinds.some((kind) => kind.kindKey === derivedKind)) {
+      setSelectedKindKey(derivedKind);
+      writeWorkloadTypePref(derivedKind);
+    }
+  }, [working?.trackingId, working?.definition.definitionKey, kinds]);
+
+  useEffect(() => {
+    if (!findExpanded || !findFocusPendingRef.current) {
+      return;
+    }
+    findFocusPendingRef.current = false;
+    window.requestAnimationFrame(() => {
+      document.getElementById('optic-find-case-tracking')?.focus();
+    });
+  }, [findExpanded]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -178,6 +353,18 @@ export function OfficerWorkspace() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [working]);
+
+  useEffect(() => {
+    function onNavigate(event: Event) {
+      const detail = (event as CustomEvent<{ view?: string; workspaceFocus?: WorkspaceFocusHint }>).detail;
+      if (detail?.view !== 'workspace' || !detail.workspaceFocus?.findCase) {
+        return;
+      }
+      focusFindCase();
+    }
+    window.addEventListener(APP_NAVIGATE_EVENT, onNavigate);
+    return () => window.removeEventListener(APP_NAVIGATE_EVENT, onNavigate);
+  }, []);
 
   useEffect(() => {
     if (!selectedKind) {
@@ -219,11 +406,11 @@ export function OfficerWorkspace() {
           return;
         }
         setDesks(Object.fromEntries(loaded.map((desk) => [desk.member.definitionKey, desk])));
-        setErrorSummary(undefined);
+        clearWorkspaceErrors();
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          setErrorSummary(formatWorkspaceError(error));
+          applyWorkspaceError(error);
         }
       })
       .finally(() => {
@@ -250,7 +437,7 @@ export function OfficerWorkspace() {
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          setErrorSummary(formatWorkspaceError(error));
+          applyWorkspaceError(error);
         }
       });
     return () => {
@@ -349,7 +536,7 @@ export function OfficerWorkspace() {
     })
       .then((page) => {
         if (!cancelled) {
-          setErrorSummary(undefined);
+          clearWorkspaceErrors();
           setLivePage(page);
           if (page.page !== listPage) {
             setListPage(page.page);
@@ -358,7 +545,7 @@ export function OfficerWorkspace() {
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          setErrorSummary(formatWorkspaceError(error));
+          applyWorkspaceError(error);
         }
       });
     return () => {
@@ -388,7 +575,8 @@ export function OfficerWorkspace() {
       desk.release.workflow,
       listPage,
       listFilters,
-      actorId
+      actorId,
+      desk.release.slas
     );
   }, [actorId, desks, listFilters, listPage, mode, selected]);
 
@@ -412,10 +600,10 @@ export function OfficerWorkspace() {
   async function run(work: () => Promise<void>) {
     setBusy(true);
     try {
-      setErrorSummary(undefined);
+      clearWorkspaceErrors();
       await work();
     } catch (error: unknown) {
-      setErrorSummary(formatWorkspaceError(error));
+      applyWorkspaceError(error);
     } finally {
       setBusy(false);
     }
@@ -454,7 +642,7 @@ export function OfficerWorkspace() {
         mode === 'live'
           ? (await mintTrackingId(member.entityType)).trackingId
           : nextTrackingId(member.entityType);
-      setWorking(
+      openWorkingCase(
         buildDraftCase({
           trackingId,
           entityType: member.entityType,
@@ -480,6 +668,9 @@ export function OfficerWorkspace() {
       definitionKey: summary.definition.definitionKey,
       ...(mode === 'try' ? { version: summary.definition.version } : {})
     });
+    // Keep the open case on the persisted instance even if the following action
+    // fails validation — otherwise a retry tries to create the same tracking id again.
+    setWorking(created);
     if (mode === 'try') {
       await refreshTryDesk(summary.definition.definitionKey, summary.definition.version);
     } else {
@@ -515,19 +706,19 @@ export function OfficerWorkspace() {
       if (mode === 'try') {
         await refreshTryDesk(selected?.definitionKey ?? row.definitionKey, desks[row.definitionKey]?.member.version ?? '');
       }
-      setWorking(next);
+      openWorkingCase(next);
     });
   }
 
   async function openRow(row: DemoQueueRow) {
     await run(async () => {
-      setWorking(await getWorkflowSummary(row.entityType, row.trackingId));
+      openWorkingCase(await getWorkflowSummary(row.entityType, row.trackingId));
     });
   }
 
   async function openSearchHit(hit: SearchHit) {
     await run(async () => {
-      setWorking(await getWorkflowSummary(hit.entityType, hit.trackingId));
+      openWorkingCase(await getWorkflowSummary(hit.entityType, hit.trackingId));
     });
   }
 
@@ -720,6 +911,78 @@ export function OfficerWorkspace() {
     return undefined;
   }, [mode, trySections, liveSections]);
 
+  useEffect(() => {
+    if (pendingFocusRef.current === undefined) {
+      pendingFocusRef.current = consumeWorkspaceFocusHint() ?? null;
+    }
+    if (focusHintAppliedRef.current || !pendingFocusRef.current) {
+      return;
+    }
+    const hint = pendingFocusRef.current;
+    if (hint.kindKey && kinds.length === 0) {
+      return;
+    }
+    if (hint.kindKey && kinds.some((kind) => kind.kindKey === hint.kindKey)) {
+      setSelectedKindKey(hint.kindKey);
+      writeWorkloadTypePref(hint.kindKey);
+    }
+    if (hint.findCase) {
+      focusHintAppliedRef.current = true;
+      pendingFocusRef.current = null;
+      focusFindCase();
+      return;
+    }
+    if (hint.trackingId && hint.entityType) {
+      focusHintAppliedRef.current = true;
+      pendingFocusRef.current = null;
+      void run(async () => {
+        openWorkingCase(await getWorkflowSummary(hint.entityType!, hint.trackingId!));
+      });
+      return;
+    }
+    if (!hint.stageKey) {
+      focusHintAppliedRef.current = true;
+      pendingFocusRef.current = null;
+      return;
+    }
+    const candidates =
+      mode === 'try'
+        ? trySections.flatMap((section) =>
+            section.queues.map((queue) => ({
+              definitionKey: section.member.definitionKey,
+              queueKey: queue.queueKey,
+              stageQueueKey: stageQueueKeyFromRelease(
+                desks[section.member.definitionKey]?.release,
+                hint.stageKey!
+              )
+            }))
+          )
+        : liveSections.flatMap((section) =>
+            section.queues.map((queue) => ({
+              definitionKey: queue.definitionKey,
+              queueKey: queue.queueKey,
+              stageQueueKey: stageQueueKeyFromRelease(
+                kindSearchReleases[queue.definitionKey],
+                hint.stageKey!
+              )
+            }))
+          );
+    if (candidates.length === 0) {
+      // Wait until queues for the selected kind are loaded.
+      return;
+    }
+    const match =
+      candidates.find((queue) =>
+        queueMatchesStage(queue.queueKey, hint.stageKey!, queue.stageQueueKey)
+      ) ??
+      candidates.find((queue) => queueMatchesStage(queue.queueKey, hint.stageKey!));
+    focusHintAppliedRef.current = true;
+    pendingFocusRef.current = null;
+    if (match) {
+      openQueue(match.definitionKey, match.queueKey);
+    }
+  }, [desks, kindSearchReleases, kinds, liveSections, mode, trySections]);
+
   return (
     <section
       className={`optic-workspace${mode === 'try' ? ' optic-workspace-rehearsal-mode' : ''}${
@@ -733,7 +996,12 @@ export function OfficerWorkspace() {
           <h1 id="workspace-heading">Officer workspace</h1>
         </div>
         <div className="optic-workspace-hero-tools">
-          <WorkingAsField label="Signed in as" value={actorId} onChange={chooseOfficer} />
+          <WorkingAsField
+            label="Signed in as"
+            value={actorId}
+            onChange={chooseOfficer}
+            readOnly={!actorOverrideEnabled}
+          />
           {tryModeEnabled ? (
             <div className="optic-designer-view-toggle" role="group" aria-label="Workspace mode">
               <button type="button" aria-pressed={mode === 'try'} onClick={() => setMode('try')}>
@@ -761,13 +1029,68 @@ export function OfficerWorkspace() {
           Rehearsal — draft data only. Switch to <strong>Live</strong> for activated work.
         </p>
       ) : null}
-      {errorSummary ? (
-        <ErrorSummary key={errorSummary} focus>
-          <DesignerErrorBody message={errorSummary} />
-        </ErrorSummary>
-      ) : null}
+      <div className="optic-workspace-context" role="status" aria-label="Workspace context">
+        <span className="optic-workspace-context-chip" data-mode={mode}>
+          {mode === 'try' ? 'Try' : 'Live'}
+        </span>
+        <span className="optic-workspace-context-sep" aria-hidden="true">
+          ·
+        </span>
+        <span>{selectedKind?.label ?? 'No workload type'}</span>
+        {queuePage ? (
+          <>
+            <span className="optic-workspace-context-sep" aria-hidden="true">
+              ·
+            </span>
+            <span>{queuePage.displayName}</span>
+          </>
+        ) : null}
+        <span className="optic-workspace-context-sep" aria-hidden="true">
+          ·
+        </span>
+        <span>{actorId}</span>
+        {working ? (
+          <>
+            <span className="optic-workspace-context-sep" aria-hidden="true">
+              ·
+            </span>
+            <span className="optic-workspace-context-case">{working.trackingId}</span>
+          </>
+        ) : null}
+        {searchEnabled && !findExpanded ? (
+          <button
+            type="button"
+            className="optic-workspace-context-find"
+            onClick={() => focusFindCase()}
+          >
+            <ButtonLabel icon="search">Find a case</ButtonLabel>
+          </button>
+        ) : null}
+      </div>
+      <CaughtErrorBanner error={formFieldErrors.length > 0 ? undefined : errorBanner} />
       <StatusToast message={statusToast} onDismiss={() => setStatusToast(undefined)} />
-      <div className={`optic-workspace-desk${working ? ' optic-workspace-desk-focused' : ''}`}>
+      {working ? (
+        <div className="optic-workspace-case-mode-bar" role="status">
+          <button type="button" className="optic-button-secondary" onClick={() => setWorking(undefined)}>
+            <ButtonLabel icon="queue">Back to queues</ButtonLabel>
+          </button>
+          <TrackingIdLinkWithCopy trackingId={working.trackingId} />
+          <span className="optic-workspace-case-mode-meta">
+            {working.entityType}
+            {working.workflow.currentStageLabel
+              ? ` · ${working.workflow.currentStageLabel}`
+              : working.workflow.currentStageKey
+                ? ` · ${working.workflow.currentStageKey}`
+                : ''}
+          </span>
+          <span className="optic-workspace-case-mode-meta">Case-first mode · Esc closes</span>
+        </div>
+      ) : null}
+      <div
+        className={`optic-workspace-desk${
+          working ? ' optic-workspace-desk-focused optic-workspace-desk-case-open' : ''
+        }`}
+      >
         <div className="optic-workspace-sidebar">
           <section className="optic-workspace-card optic-workspace-kind-card" aria-labelledby="kind-heading">
             <h2 id="kind-heading">
@@ -786,6 +1109,7 @@ export function OfficerWorkspace() {
                 disabled={busy}
                 onChange={(kindKey) => {
                   setSelectedKindKey(kindKey);
+                  writeWorkloadTypePref(kindKey);
                   setSelected(undefined);
                   setWorking(undefined);
                 }}
@@ -846,7 +1170,9 @@ export function OfficerWorkspace() {
                         key={section.heading}
                         heading={section.heading}
                         icon={section.entityType === 'MAIL' ? 'inbox' : 'queue'}
-                        definitionKey={section.queues[0]?.definitionKey ?? selectedKind.members[0]?.definitionKey ?? ''}
+                        definitionKey={
+                          section.queues[0]?.definitionKey ?? selectedKind.members[0]?.definitionKey ?? ''
+                        }
                         queues={section.queues.map((queue) => ({
                           queueKey: queue.queueKey,
                           displayName: queue.displayName,
@@ -856,7 +1182,8 @@ export function OfficerWorkspace() {
                         busy={busy}
                         onOpen={(definitionKey, queueKey) =>
                           openQueue(
-                            section.queues.find((queue) => queue.queueKey === queueKey)?.definitionKey ?? definitionKey,
+                            section.queues.find((queue) => queue.queueKey === queueKey)?.definitionKey ??
+                              definitionKey,
                             queueKey
                           )
                         }
@@ -867,35 +1194,77 @@ export function OfficerWorkspace() {
           ) : null}
         </div>
         {searchEnabled ? (
-          <div className="optic-workspace-card optic-workspace-search-card">
-            <SearchScreen
-              headingLevel={2}
-              compact
-              openTrackingId={working?.trackingId}
-              extraFields={searchExtraFields}
-              definitionKeys={selectedKind?.members.map((member) => member.definitionKey)}
-              onOpen={(hit) => void openSearchHit(hit)}
-            />
+          <div
+            className={`optic-workspace-card optic-workspace-search-card${
+              findExpanded ? '' : ' is-collapsed'
+            }`}
+          >
+            {findExpanded ? (
+              <>
+                <div className="optic-workspace-search-collapse-bar">
+                  <button
+                    type="button"
+                    className="optic-button-secondary"
+                    onClick={() => setFindExpandedPref(false)}
+                  >
+                    Hide Find a case
+                  </button>
+                </div>
+                <SearchScreen
+                  headingLevel={2}
+                  compact
+                  openTrackingId={working?.trackingId}
+                  extraFields={searchExtraFields}
+                  definitionKeys={selectedKind?.members.map((member) => member.definitionKey)}
+                  onOpen={(hit) => void openSearchHit(hit)}
+                />
+              </>
+            ) : (
+              <div className="optic-workspace-search-collapsed">
+                <button
+                  type="button"
+                  className="optic-button-secondary"
+                  onClick={() => focusFindCase()}
+                >
+                  <ButtonLabel icon="search">Find a case</ButtonLabel>
+                </button>
+                <p className="optic-help">Press / to search by tracking ID or receipt.</p>
+                {recentCases.length > 0 ? (
+                  <div className="optic-workspace-recent" aria-label="Recent cases">
+                    <p className="optic-workspace-recent-label">Recent</p>
+                    <ul className="optic-workspace-recent-list">
+                      {recentCases.map((item) => (
+                        <li key={item.trackingId}>
+                          <button
+                            type="button"
+                            className="optic-workspace-recent-id"
+                            disabled={busy}
+                            onClick={() =>
+                              void run(async () => {
+                                openWorkingCase(
+                                  await getWorkflowSummary(item.entityType, item.trackingId)
+                                );
+                              })
+                            }
+                          >
+                            {item.trackingId}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
         ) : null}
         <div className="optic-workspace-main">
-          {working ? (
-            <OfficerCasePane
-              working={working}
-              workflow={caseWorkflow ?? working.workflowDefinition}
-              forms={Object.keys(caseForms).length > 0 ? caseForms : (working.forms ?? {})}
-              busy={busy}
-              onComplete={(actionKey, dataPatch) => void completeWorking(actionKey, dataPatch)}
-              onAssign={() => void assignWorking()}
-              onReassign={(assignedTo) => void reassignWorking(assignedTo)}
-              onRelease={() => void releaseWorking()}
-              onClose={() => setWorking(undefined)}
-            />
-          ) : queuePage ? (
+          {queuePage ? (
             <QueueScreen
               queue={queuePage}
               actorId={actorId}
               headingLevel={2}
+              openTrackingId={working?.trackingId}
               emptyHint={
                 queuePage.rows.length === 0
                   ? searchEnabled
@@ -919,32 +1288,87 @@ export function OfficerWorkspace() {
                     ? 'No activated workload types yet. Switch to Try to rehearse a draft, or activate a published release.'
                     : 'No drafts yet. Open Designer and save a workload type to practice here.'
                   : selectedKind
-                    ? 'Open a queue on the left to start, or find a case by tracking ID or receipt.'
-                    : 'Select a workload type to see its queues.'}
+                    ? 'Open a queue on the left to start, or use Find a case.'
+                    : 'Select a workload type to see its queues, or use Find a case.'}
               </p>
-              <div className="optic-workspace-main-empty-actions">
-                {searchEnabled ? (
-                  <button type="button" className="optic-button-primary" onClick={focusFindCase}>
-                    <ButtonLabel icon="search">Find a case</ButtonLabel>
-                  </button>
-                ) : null}
-                {firstWorkQueue ? (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => openQueue(firstWorkQueue.definitionKey, firstWorkQueue.queueKey)}
-                  >
-                    <ButtonLabel icon="queue">Open {firstWorkQueue.displayName}</ButtonLabel>
-                  </button>
-                ) : mode === 'live' ? (
-                  <button type="button" onClick={() => setMode('try')}>
-                    <ButtonLabel icon="draft">Switch to Try</ButtonLabel>
-                  </button>
-                ) : null}
-              </div>
+              {firstWorkQueue ||
+              searchEnabled ||
+              (mode === 'live' && kinds.length === 0) ||
+              (selectedKind && !queuePage) ? (
+                <div className="optic-workspace-main-empty-actions">
+                  {firstWorkQueue ? (
+                    <button
+                      type="button"
+                      className="optic-button-primary"
+                      disabled={busy}
+                      onClick={() => openQueue(firstWorkQueue.definitionKey, firstWorkQueue.queueKey)}
+                    >
+                      <ButtonLabel icon="queue">Open {firstWorkQueue.displayName}</ButtonLabel>
+                    </button>
+                  ) : null}
+                  {searchEnabled ? (
+                    <button type="button" className="optic-button-secondary" onClick={() => focusFindCase()}>
+                      <ButtonLabel icon="search">Find a case</ButtonLabel>
+                    </button>
+                  ) : null}
+                  {!firstWorkQueue && mode === 'live' && kinds.length === 0 ? (
+                    <button type="button" className="optic-button-secondary" onClick={() => setMode('try')}>
+                      <ButtonLabel icon="draft">Switch to Try</ButtonLabel>
+                    </button>
+                  ) : null}
+                  {selectedKind && !queuePage && !firstWorkQueue ? (
+                    <button
+                      type="button"
+                      className="optic-button-primary"
+                      disabled={busy}
+                      onClick={() => void arriveNewWork()}
+                    >
+                      <ButtonLabel icon="live">
+                        {intakeMember(selectedKind)?.entityType === 'MAIL'
+                          ? 'New mail arrives'
+                          : 'New work arrives'}
+                      </ButtonLabel>
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           )}
         </div>
+        {working ? (
+          <>
+            <button
+              type="button"
+              className="optic-case-drawer-scrim"
+              aria-label="Dismiss case overlay"
+              tabIndex={-1}
+              onClick={() => setWorking(undefined)}
+            />
+            <aside className="optic-case-drawer" aria-label="Opened case">
+              <OfficerCasePane
+                working={working}
+                workflow={caseWorkflow ?? working.workflowDefinition}
+                forms={Object.keys(caseForms).length > 0 ? caseForms : (working.forms ?? {})}
+                busy={busy}
+                formErrors={formFieldErrors}
+                onFormEdit={(previous, next) => {
+                  if (formFieldErrors.length === 0) {
+                    return;
+                  }
+                  setFormFieldErrors((current) => retainFormErrorsAfterEdit(current, previous, next));
+                }}
+                onComplete={(actionKey, dataPatch) => void completeWorking(actionKey, dataPatch)}
+                onAssign={() => void assignWorking()}
+                onReassign={(assignedTo) => void reassignWorking(assignedTo)}
+                onRelease={() => void releaseWorking()}
+                onClose={() => {
+                  clearWorkspaceErrors();
+                  setWorking(undefined);
+                }}
+              />
+            </aside>
+          </>
+        ) : null}
       </div>
     </section>
   );
@@ -1005,6 +1429,3 @@ function QueueSection({
   );
 }
 
-function formatWorkspaceError(error: unknown): string {
-  return formatCaughtApiError(error, 'The officer workspace could not load.');
-}

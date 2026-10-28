@@ -11,7 +11,7 @@ export function WorkloadTypeSelect({
   kinds: WorkKind[];
   value?: string;
   disabled?: boolean;
-  onChange: (kindKey: string) => void;
+  onChange: (kindKey: string | undefined) => void;
 }) {
   const baseId = useId();
   const inputId = `${baseId}-input`;
@@ -59,6 +59,13 @@ export function WorkloadTypeSelect({
     inputRef.current?.focus();
   }
 
+  function clearSelection() {
+    onChange(undefined);
+    setQuery('');
+    setOpen(false);
+    inputRef.current?.focus();
+  }
+
   function moveActive(next: number) {
     if (filtered.length === 0) {
       return;
@@ -69,7 +76,7 @@ export function WorkloadTypeSelect({
   return (
     <div className="optic-kind-combobox" ref={rootRef}>
       <div className="optic-kind-combobox-field">
-        <div className="optic-kind-combobox-control">
+        <div className={`optic-kind-combobox-control${selected ? ' has-clear' : ''}`}>
           <input
             ref={inputRef}
             id={inputId}
@@ -92,6 +99,15 @@ export function WorkloadTypeSelect({
               setActiveIndex(0);
             }}
             onKeyDown={(event) => {
+              if (
+                (event.key === 'Backspace' || event.key === 'Delete') &&
+                selected &&
+                (!open || query === '')
+              ) {
+                event.preventDefault();
+                clearSelection();
+                return;
+              }
               if (event.key === 'ArrowDown') {
                 event.preventDefault();
                 if (!open) {
@@ -133,6 +149,18 @@ export function WorkloadTypeSelect({
               }
             }}
           />
+          {selected ? (
+            <button
+              type="button"
+              className="optic-kind-combobox-clear"
+              disabled={disabled}
+              aria-label="Clear workload type"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => clearSelection()}
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
           <button
             type="button"
             className="optic-kind-combobox-toggle"
@@ -186,7 +214,7 @@ export function WorkloadTypeSelect({
           </ul>
         ) : null}
       </div>
-      <p className="optic-help">Type to search, then choose a type to see its queues.</p>
+      <p className="optic-help">Type to search, then choose a type. Use Clear to unselect.</p>
     </div>
   );
 }

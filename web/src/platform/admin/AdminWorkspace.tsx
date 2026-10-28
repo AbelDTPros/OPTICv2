@@ -1,7 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import {
+  APP_NAVIGATE_EVENT,
+  consumeAdminFocusHint,
+  type AdminFocusHint
+} from '../navigation/app-navigation.js';
 import { ButtonLabel, type IconName } from '../ui/Icon.js';
 import { AdminAuditPage } from './AdminAuditPage.js';
 import { AdminFeaturesPage } from './AdminFeaturesPage.js';
+import { AdminIntegrationsPage } from './AdminIntegrationsPage.js';
 
 export type AdminSection = 'features' | 'audit' | 'integrations';
 
@@ -22,60 +28,74 @@ const SECTIONS: Array<{ id: AdminSection; label: string; icon: IconName; descrip
     id: 'integrations',
     label: 'Integrations',
     icon: 'inbox',
-    description: 'Outbound systems such as Splunk and package export targets.'
+    description: 'Platform connectivity and outbound systems such as Splunk.'
   }
 ];
 
-export function AdminWorkspace() {
-  const [section, setSection] = useState<AdminSection>('features');
-  const active = SECTIONS.find((item) => item.id === section) ?? SECTIONS[0];
-
-  return (
-    <div className="optic-admin-workspace">
-      <aside className="optic-admin-sidebar" aria-label="Admin">
-        <p className="optic-admin-sidebar-kicker">Administration</p>
-        <nav className="optic-admin-sidebar-nav" aria-label="Admin sections">
-          {SECTIONS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              aria-current={section === item.id ? 'page' : undefined}
-              onClick={() => setSection(item.id)}
-            >
-              <ButtonLabel icon={item.icon}>{item.label}</ButtonLabel>
-            </button>
-          ))}
-        </nav>
-      </aside>
-      <div className="optic-admin-content">
-        {section === 'features' ? (
-          <AdminFeaturesPage />
-        ) : section === 'audit' ? (
-          <AdminAuditPage />
-        ) : (
-          <AdminComingSoonPage title={active.label} description={active.description} />
-        )}
-      </div>
-    </div>
-  );
+function isAdminSection(value: string | undefined): value is AdminSection {
+  return value === 'features' || value === 'audit' || value === 'integrations';
 }
 
-function AdminComingSoonPage({ title, description }: { title: string; description: string }) {
+export function AdminWorkspace() {
+  const [section, setSection] = useState<AdminSection>(() => {
+    const hint = consumeAdminFocusHint();
+    return isAdminSection(hint?.section) ? hint.section : 'features';
+  });
+  const active = SECTIONS.find((item) => item.id === section) ?? SECTIONS[0];
+
+  useEffect(() => {
+    function onNavigate(event: Event) {
+      const detail = (
+        event as CustomEvent<{ view?: string; adminFocus?: AdminFocusHint }>
+      ).detail;
+      if (detail?.view !== 'admin' || !isAdminSection(detail.adminFocus?.section)) {
+        return;
+      }
+      setSection(detail.adminFocus.section);
+    }
+    window.addEventListener(APP_NAVIGATE_EVENT, onNavigate);
+    return () => window.removeEventListener(APP_NAVIGATE_EVENT, onNavigate);
+  }, []);
+
   return (
-    <section className="optic-admin-coming-soon" aria-labelledby="admin-coming-soon-heading">
-      <header className="optic-designer-header optic-admin-features-header">
+    <div className="optic-admin-shell">
+      <header className="optic-admin-page-intro">
         <div>
-          <h1 id="admin-coming-soon-heading">{title}</h1>
-          <p className="optic-help">{description}</p>
+          <p className="optic-designer-kicker">Administration</p>
+          <p className="optic-designer-page-title">Admin</p>
+          <p className="optic-help">Environment controls, audit history, and platform connectivity.</p>
         </div>
-      </header>
-      <div className="optic-admin-coming-soon-panel" role="status">
-        <p className="optic-admin-coming-soon-title">Coming next</p>
-        <p className="optic-help">
-          This Admin section is reserved. The shell is ready so Features, Audit trail, and Integrations stay in one
-          place as each capability lands.
+        <p className="optic-admin-page-intro-status" aria-label="Current section">
+          {active.label}
         </p>
+      </header>
+      <div className="optic-admin-workspace">
+        <aside className="optic-admin-sidebar" aria-label="Admin">
+          <p className="optic-admin-sidebar-kicker">Administration</p>
+          <nav className="optic-admin-sidebar-nav" aria-label="Admin sections">
+            {SECTIONS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                aria-current={section === item.id ? 'page' : undefined}
+                title={item.description}
+                onClick={() => setSection(item.id)}
+              >
+                <ButtonLabel icon={item.icon}>{item.label}</ButtonLabel>
+              </button>
+            ))}
+          </nav>
+        </aside>
+        <div className="optic-admin-content optic-view-enter">
+          {section === 'features' ? (
+            <AdminFeaturesPage />
+          ) : section === 'audit' ? (
+            <AdminAuditPage />
+          ) : (
+            <AdminIntegrationsPage />
+          )}
+        </div>
       </div>
-    </section>
+    </div>
   );
 }

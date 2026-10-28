@@ -17,6 +17,7 @@ import { FeatureFlagService } from '../feature-flags/service/feature-flag.servic
 import { MysqlQueueProjectionRepository } from '../queue/persistence/mysql-queue-projection.repository.js';
 import { QueueService } from '../queue/service/queue.service.js';
 import { SearchService } from '../search/service/search.service.js';
+import { SupervisorDashboardService } from '../supervisor/service/supervisor-dashboard.service.js';
 import { MysqlTrackingRepository } from '../tracking/persistence/mysql-tracking.repository.js';
 import { TrackingService } from '../tracking/service/tracking.service.js';
 import { MysqlWorkflowInstanceRepository } from '../workflow/persistence/mysql-workflow-instance.repository.js';
@@ -36,6 +37,7 @@ export function createConfigurationRuntime(config: AppConfig): {
   bulk: BulkActionService;
   features: FeatureFlagService;
   adminAudit: AdminAuditService;
+  supervisor: SupervisorDashboardService;
   pipeline: OutboxPipeline;
   outbox: MysqlOutboxRepository;
 } {
@@ -95,6 +97,13 @@ export function createConfigurationRuntime(config: AppConfig): {
     uiEnabled: config.featureAdmin.uiEnabled,
     apiEnabled: config.featureAdmin.apiEnabled
   });
+  const supervisor = new SupervisorDashboardService(
+    projections,
+    audit,
+    repository,
+    loader,
+    authorization
+  );
   const pipeline = new OutboxPipeline(outbox, deliveries, audit, splunk, config.outboxPublisher);
   return {
     service,
@@ -107,6 +116,7 @@ export function createConfigurationRuntime(config: AppConfig): {
     bulk,
     features,
     adminAudit,
+    supervisor,
     pipeline,
     outbox
   };

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DesignerApiError } from '../designers/config-api.js';
+import { asDisplayError, type DisplayError } from '../api/apply-api-error.js';
 import {
   listAdminFeatures,
   updateAdminFeature,
@@ -7,8 +7,9 @@ import {
   type FeatureAdminGates
 } from '../features/feature-api.js';
 import { useFeatureFlags } from '../features/FeatureFlagsContext.js';
-import { DesignerErrorBody, ErrorSummary } from '../ui/ErrorSummary.js';
+import { CaughtErrorBanner } from '../ui/CaughtErrorBanner.js';
 import { ButtonLabel } from '../ui/Icon.js';
+import { StatusToast } from '../ui/StatusToast.js';
 
 const GROUP_LABELS: Record<string, string> = {
   shell: 'Navigation',
@@ -21,7 +22,8 @@ export function AdminFeaturesPage() {
   const { refresh: refreshShellFlags } = useFeatureFlags();
   const [flags, setFlags] = useState<AdminFeatureFlag[]>([]);
   const [admin, setAdmin] = useState<FeatureAdminGates | null>(null);
-  const [errorSummary, setErrorSummary] = useState<string>();
+  const [errorSummary, setErrorSummary] = useState<DisplayError | undefined>();
+  const [statusToast, setStatusToast] = useState<string | undefined>();
   const [savingKey, setSavingKey] = useState<string>();
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +37,7 @@ export function AdminFeaturesPage() {
     } catch (error) {
       setFlags([]);
       setAdmin(null);
-      setErrorSummary(formatAdminError(error));
+      setErrorSummary(asDisplayError(error, 'Feature admin request failed.'));
     } finally {
       setLoading(false);
     }
@@ -67,8 +69,9 @@ export function AdminFeaturesPage() {
       });
       setFlags((current) => current.map((item) => (item.key === updated.key ? updated : item)));
       await refreshShellFlags();
+      setStatusToast(`${updated.key} ${updated.enabled ? 'enabled' : 'disabled'}`);
     } catch (error) {
-      setErrorSummary(formatAdminError(error));
+      setErrorSummary(asDisplayError(error, 'Feature admin request failed.'));
     } finally {
       setSavingKey(undefined);
     }
@@ -97,16 +100,19 @@ export function AdminFeaturesPage() {
         </button>
       </header>
 
-      {errorSummary ? (
-        <ErrorSummary key={errorSummary} focus>
-          <DesignerErrorBody message={errorSummary} />
-        </ErrorSummary>
+      <CaughtErrorBanner error={errorSummary} />
+      <StatusToast message={statusToast} onDismiss={() => setStatusToast(undefined)} />
+
+      {loading ? (
+        <p className="optic-help" role="status" aria-live="polite">
+          Loading feature flags…
+        </p>
       ) : null}
 
-      {loading ? <p className="optic-help">Loading feature flags…</p> : null}
-
       {!loading && grouped.length === 0 && !errorSummary ? (
-        <p className="optic-help">No feature flags are available.</p>
+        <p className="optic-help" role="status">
+          No feature flags are available.
+        </p>
       ) : null}
 
       <div className="optic-admin-feature-groups">
@@ -154,12 +160,3 @@ export function AdminFeaturesPage() {
   );
 }
 
-function formatAdminError(error: unknown): string {
-  if (error instanceof DesignerApiError) {
-    return error.message;
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return 'Feature admin request failed.';
-}

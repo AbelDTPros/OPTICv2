@@ -1,12 +1,15 @@
+import { fieldNeedsProjection } from '../../configuration/domain/indexed-fields.js';
 import type { QueueProjectedField } from '../../configuration/domain/types.js';
 import type { CompiledDefinition } from '../../configuration/definitions/compiled-definition.js';
 import { isMissing, resolveJsonPath } from '../../../rules/json-path-resolver.js';
 import type { WorkflowInstanceRecord } from '../../workflow/domain/types.js';
+import { computeSlaState, resolveStageSla } from './sla-state.js';
 import type { QueueProjectionRecord } from './types.js';
 
 export function projectInstance(
   instance: WorkflowInstanceRecord,
-  compiled: CompiledDefinition
+  compiled: CompiledDefinition,
+  now = new Date()
 ): QueueProjectionRecord {
   const receiptNumber = readReceiptNumber(instance.businessData);
   const projectedJson: Record<string, unknown> = {};
@@ -19,6 +22,7 @@ export function projectInstance(
       projectedJson[field.fieldKey] = value;
     }
   }
+  const sla = resolveStageSla(compiled.release, instance.currentStageKey);
   return {
     workflowInstanceId: instance.id,
     entityType: instance.entityType,
@@ -33,7 +37,12 @@ export function projectInstance(
     priority: null,
     receivedAt: instance.createdAt,
     enteredStageAt: instance.enteredStageAt,
-    slaState: null,
+    slaState: computeSlaState({
+      sla,
+      enteredStageAt: instance.enteredStageAt,
+      currentStageKey: instance.currentStageKey,
+      now
+    }),
     receiptNumber,
     status: instance.status,
     rowVersion: instance.rowVersion,
@@ -54,9 +63,9 @@ export function authoredProjectedFields(compiled: CompiledDefinition): QueueProj
       fields.push(field);
     }
   }
-  // Find a case BUSINESS_DATA fields must be projectable even before a queue column is authored.
+  // Indexed BUSINESS_DATA fields (Find and/or Dashboard) must be projectable even without a queue column.
   for (const field of compiled.release.search?.fields ?? []) {
-    if (field.source !== 'BUSINESS_DATA' || !field.path.trim() || field.path.startsWith('$workflow')) {
+    if (!fieldNeedsProjection(field)) {
       continue;
     }
     if (seen.has(field.fieldKey)) {

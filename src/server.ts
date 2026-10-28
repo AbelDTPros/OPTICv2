@@ -26,6 +26,7 @@ async function main(): Promise<void> {
     bulk,
     features,
     adminAudit,
+    supervisor,
     pipeline,
     outbox
   } = createConfigurationRuntime(config);
@@ -46,7 +47,8 @@ async function main(): Promise<void> {
     search,
     tracking,
     features,
-    adminAudit
+    adminAudit,
+    supervisor
   );
   const server = await listenHttp(app, config.port);
   log('info', 'API server listening', {

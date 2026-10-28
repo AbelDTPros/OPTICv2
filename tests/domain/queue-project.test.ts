@@ -98,4 +98,89 @@ describe('queue projection', () => {
       A_NUMBER: 'A123343'
     });
   });
+
+  it('projects Dashboard-only indexed fields and skips unused ones', () => {
+    const release = {
+      displayName: 'I-90 Linear',
+      queues: { [dataEntryQueue.queueKey]: dataEntryQueue },
+      search: {
+        searchKey: 'DEFAULT',
+        fields: [
+          {
+            fieldKey: 'location',
+            source: 'BUSINESS_DATA' as const,
+            path: '$.dataEntryDetails.location',
+            match: 'EXACT_PREFIX',
+            pii: false,
+            useInSearch: false,
+            useInDashboard: true
+          },
+          {
+            fieldKey: 'ignored',
+            source: 'BUSINESS_DATA' as const,
+            path: '$.dataEntryDetails.ignored',
+            match: 'CONTAINS',
+            pii: false,
+            useInSearch: false,
+            useInDashboard: false
+          }
+        ]
+      }
+    };
+    const row = projectInstance(
+      instance({
+        dataEntryDetails: {
+          receiptNumber: 'ABC1234567890',
+          location: 'Atlanta',
+          ignored: 'skip-me'
+        }
+      }),
+      {
+        ...compiled(dataEntryQueue),
+        release: release as CompiledDefinition['release']
+      }
+    );
+    expect(row.projectedJson).toMatchObject({
+      receiptNumber: 'ABC1234567890',
+      location: 'Atlanta'
+    });
+    expect(row.projectedJson).not.toHaveProperty('ignored');
+  });
+
+  it('projects SLA state from the current stage clock', () => {
+    const now = new Date('2026-09-05T00:00:00.000Z'); // 48h after entered
+    const withSla: CompiledDefinition = {
+      ...compiled(dataEntryQueue),
+      release: {
+        ...compiled(dataEntryQueue).release,
+        workflow: {
+          initialStageKey: 'READY_FOR_DATA_ENTRY',
+          stages: [
+            {
+              stageKey: 'READY_FOR_DATA_ENTRY',
+              displayName: 'Ready',
+              order: 1,
+              slaKey: 'DATA_ENTRY_SLA',
+              actionKeys: [],
+              assignmentPolicy: { mode: 'PULL', allowSelfAssign: true, allowReassign: true, allowRelease: true }
+            }
+          ],
+          terminalStageKeys: [],
+          transitionSets: []
+        },
+        slas: {
+          DATA_ENTRY_SLA: {
+            slaKey: 'DATA_ENTRY_SLA',
+            clock: 'CALENDAR',
+            target: { durationHours: 48 },
+            warningThresholdPercent: 75,
+            breachThresholdPercent: 100,
+            severityOnBreach: 'HIGH'
+          }
+        }
+      }
+    };
+    const row = projectInstance(instance({ receiptNumber: 'ABC1234567890' }), withSla, now);
+    expect(row.slaState).toBe('BREACHED');
+  });
 });

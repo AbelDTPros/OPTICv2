@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SearchFieldDefinition } from '../../../../src/modules/configuration/domain/types.js';
+import { asDisplayError, type DisplayError } from '../api/apply-api-error.js';
 import { SearchApiError } from '../api/api-error.js';
-import { ErrorSummary } from '../ui/ErrorSummary.js';
 import { officerDisplayName } from '../actors/demo-officers.js';
+import { TrackingIdLinkWithCopy } from '../tracking/TrackingIdDisplay.js';
+import { CaughtErrorBanner } from '../ui/CaughtErrorBanner.js';
 import { ButtonLabel, Icon } from '../ui/Icon.js';
 import { findCases, shouldOpenSingleHit, type SearchHit, type SearchPage } from './search-api.js';
 
@@ -35,7 +37,8 @@ export function SearchScreen({
   const [criteria, setCriteria] = useState<Record<string, string>>({});
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [page, setPage] = useState<SearchPage | undefined>();
-  const [errorSummary, setErrorSummary] = useState<string | SearchApiError | undefined>();
+  const [errorSummary, setErrorSummary] = useState<DisplayError | undefined>();
+  const [searching, setSearching] = useState(false);
   const trackingInput = useRef<HTMLInputElement>(null);
   const hasCriteria = Object.values(criteria).some((value) => value.trim());
   const advancedActiveCount =
@@ -86,6 +89,7 @@ export function SearchScreen({
   }
 
   async function runSearch() {
+    setSearching(true);
     try {
       setErrorSummary(undefined);
       const next = await findCases({
@@ -108,8 +112,13 @@ export function SearchScreen({
       setErrorSummary(
         error instanceof SearchApiError
           ? error
-          : 'The search API is not reachable. Start `npm run dev` so Vite can proxy /api.'
+          : asDisplayError(
+              error,
+              'The search API is not reachable. Start `npm run dev` so Vite can proxy /api.'
+            )
       );
+    } finally {
+      setSearching(false);
     }
   }
 
@@ -194,14 +203,11 @@ export function SearchScreen({
           </p>
         </div>
       </header>
-      {errorSummary ? (
-        <ErrorSummary
-          key={typeof errorSummary === 'string' ? errorSummary : errorSummary.referenceId ?? errorSummary.summary}
-          focus
-          error={typeof errorSummary === 'string' ? undefined : errorSummary}
-        >
-          {typeof errorSummary === 'string' ? <p>{errorSummary}</p> : null}
-        </ErrorSummary>
+      <CaughtErrorBanner error={errorSummary} />
+      {searching ? (
+        <p className="optic-help" role="status" aria-live="polite">
+          Searching…
+        </p>
       ) : null}
       <form
         className="optic-search-form"
@@ -263,33 +269,27 @@ export function SearchScreen({
       </form>
       {page ? (
         <div className="optic-search-results optic-search-results-enter">
-          <p id="search-results-status" className="optic-search-results-status">
+          <p id="search-results-status" className="optic-search-results-status" role="status">
             {page.total} {page.total === 1 ? 'result' : 'results'}
             {page.q ? ` for tracking ${page.q}` : ''}
             {page.receiptNumber ? ` for receipt ${page.receiptNumber}` : ''}
           </p>
           {page.hits.length === 0 ? (
-            <p className="optic-empty">No matching records.</p>
+            <p className="optic-empty" role="status">
+              No matching records.
+            </p>
           ) : (
             <ul className="optic-search-hits" aria-labelledby="search-results-status">
               {page.hits.map((hit, index) => {
                 const indexNumber = rowNumber(page.page, page.pageSize, index);
-                const body = <SearchHitBody hit={hit} index={indexNumber} />;
                 return (
                   <li key={`${hit.entityType}-${hit.trackingId}`}>
-                    {onOpen ? (
-                      <button
-                        type="button"
-                        className="optic-search-hit"
-                        aria-current={openTrackingId === hit.trackingId ? 'true' : undefined}
-                        aria-label={`Open ${hit.entityType} ${hit.trackingId}, row ${indexNumber}`}
-                        onClick={() => onOpen(hit)}
-                      >
-                        {body}
-                      </button>
-                    ) : (
-                      <div className="optic-search-hit">{body}</div>
-                    )}
+                    <SearchHitRow
+                      hit={hit}
+                      index={indexNumber}
+                      current={openTrackingId === hit.trackingId}
+                      onOpen={onOpen}
+                    />
                   </li>
                 );
               })}
@@ -297,7 +297,9 @@ export function SearchScreen({
           )}
         </div>
       ) : compact ? null : (
-        <p className="optic-empty">Enter a query to find a mail item or workload.</p>
+        <p className="optic-empty" role="status">
+          Enter a query to find a mail item or workload.
+        </p>
       )}
     </section>
   );
@@ -313,7 +315,17 @@ export function searchFieldLabel(fieldKey: string): string {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function SearchHitBody({ hit, index }: { hit: SearchHit; index: number }) {
+function SearchHitRow({
+  hit,
+  index,
+  current,
+  onOpen
+}: {
+  hit: SearchHit;
+  index: number;
+  current: boolean;
+  onOpen?: (hit: SearchHit) => void;
+}) {
   const receipt =
     hit.matchedFields.find((field) => field.fieldKey === 'receiptNumber' || /receipt/i.test(field.fieldKey))
       ?.value ?? null;
@@ -324,29 +336,52 @@ function SearchHitBody({ hit, index }: { hit: SearchHit; index: number }) {
       !/receipt/i.test(field.fieldKey)
   );
   const stageLabel = humanizeStageKey(hit.currentStageKey);
-  return (
+  const meta = (
     <>
+      <span className="optic-search-hit-meta">
+        <span className="optic-search-hit-entity">{hit.entityType}</span>
+        {receipt ? <span className="optic-search-hit-receipt">{receipt}</span> : null}
+        <span>{stageLabel}</span>
+        <span>{officerDisplayName(hit.assignedTo)}</span>
+      </span>
+      {highlight.length > 0 ? (
+        <span className="optic-search-hit-match">
+          {highlight.map((field) => `${searchFieldLabel(field.fieldKey)}: ${field.value}`).join(' · ')}
+        </span>
+      ) : null}
+    </>
+  );
+
+  return (
+    <div
+      className={`optic-search-hit${onOpen ? ' optic-search-hit-interactive' : ''}`}
+      aria-current={current ? 'true' : undefined}
+    >
       <span className="optic-search-hit-index" aria-hidden="true">
         {index}
       </span>
       <span className="optic-search-hit-body">
         <span className="optic-search-hit-id">
           <Icon name="scan" />
-          {hit.trackingId}
+          <TrackingIdLinkWithCopy
+            trackingId={hit.trackingId}
+            onOpen={onOpen ? () => onOpen(hit) : undefined}
+          />
         </span>
-        <span className="optic-search-hit-meta">
-          <span className="optic-search-hit-entity">{hit.entityType}</span>
-          {receipt ? <span className="optic-search-hit-receipt">{receipt}</span> : null}
-          <span>{stageLabel}</span>
-          <span>{officerDisplayName(hit.assignedTo)}</span>
-        </span>
-        {highlight.length > 0 ? (
-          <span className="optic-search-hit-match">
-            {highlight.map((field) => `${searchFieldLabel(field.fieldKey)}: ${field.value}`).join(' · ')}
-          </span>
-        ) : null}
+        {onOpen ? (
+          <button
+            type="button"
+            className="optic-search-hit-open"
+            aria-label={`Open ${hit.entityType} ${hit.trackingId}, row ${index}`}
+            onClick={() => onOpen(hit)}
+          >
+            {meta}
+          </button>
+        ) : (
+          meta
+        )}
       </span>
-    </>
+    </div>
   );
 }
 

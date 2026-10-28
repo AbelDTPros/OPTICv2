@@ -1,4 +1,4 @@
-# OPTIC NextGen Architecture
+# OPTIC v2.0 Architecture
 
 Living architecture notes. Update this file when a slice changes runtime boundaries, data ownership, or operational contracts.
 

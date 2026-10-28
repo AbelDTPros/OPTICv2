@@ -1,6 +1,6 @@
 # User guide: onboard a new workload from scratch
 
-This is the full walkthrough for creating a **new type of work** in OPTIC NextGen — for example a new I-90, I-131, or I-765 process — **without writing application code**.
+This is the full walkthrough for creating a **new type of work** in OPTIC v2.0 — for example a new I-90, I-131, or I-765 process — **without writing application code**.
 
 You will click through the **Designer** in the web demo, fill in names and rules, save a **draft**, send it through **review**, and **activate** it so officers can receive real tracking IDs. Think of it as publishing a recipe the kitchen will follow, not building a new kitchen.
 

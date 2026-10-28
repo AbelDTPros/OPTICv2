@@ -31,12 +31,7 @@ export function LabelSticker({ label }: { label: CaseLabel }) {
           {label.kindLabel} · {label.entityType}
         </p>
         <p className="optic-sticker-tracking">{label.trackingId}</p>
-        {label.statusCaption ? (
-          <p>
-            {label.statusCaption}: {label.statusText || '—'}
-          </p>
-        ) : null}
-        <p>Stage: {label.stageLabel}</p>
+        {label.statusText?.trim() ? <p>{label.statusText.trim()}</p> : null}
       </div>
     </article>
   );

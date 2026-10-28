@@ -1,8 +1,11 @@
 export const FEATURE_FLAG_KEYS = [
   'ui.shell.workspace',
   'ui.shell.designer',
+  'ui.shell.supervisor',
+  'ui.shell.command_palette',
   'ui.workspace.try_mode',
   'ui.workspace.search',
+  'ui.workspace.actor_override',
   'ui.designer.catalog.sla',
   'ui.designer.catalog.bulk',
   'ui.designer.catalog.scheduled',
@@ -12,7 +15,8 @@ export const FEATURE_FLAG_KEYS = [
   'ui.designer.lifecycle',
   'ui.designer.diff',
   'api.search',
-  'api.bulk_actions'
+  'api.bulk_actions',
+  'api.supervisor_dashboard'
 ] as const;
 
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number];
@@ -42,6 +46,20 @@ export const FEATURE_FLAG_CATALOG: FeatureFlagDefinition[] = [
     group: 'shell'
   },
   {
+    key: 'ui.shell.supervisor',
+    label: 'Dashboard',
+    description: 'Supervisor operations dashboard in the primary navigation.',
+    defaultEnabled: true,
+    group: 'shell'
+  },
+  {
+    key: 'ui.shell.command_palette',
+    label: 'Jump to…',
+    description: 'Command palette (Jump to…) and ⌘K / Ctrl+K shortcut in the shell.',
+    defaultEnabled: true,
+    group: 'shell'
+  },
+  {
     key: 'ui.workspace.try_mode',
     label: 'Try mode',
     description: 'Draft rehearsal (Try) toggle in the officer workspace.',
@@ -52,6 +70,14 @@ export const FEATURE_FLAG_CATALOG: FeatureFlagDefinition[] = [
     key: 'ui.workspace.search',
     label: 'Find a case',
     description: 'Case search in the officer workspace.',
+    defaultEnabled: true,
+    group: 'workspace'
+  },
+  {
+    key: 'ui.workspace.actor_override',
+    label: 'Signed in as override',
+    description:
+      'Editable Signed in as for demo/rehearsal. Turn off to use the fixed demo officer identity until ICAM login replaces it.',
     defaultEnabled: true,
     group: 'workspace'
   },
@@ -78,8 +104,8 @@ export const FEATURE_FLAG_CATALOG: FeatureFlagDefinition[] = [
   },
   {
     key: 'ui.designer.catalog.search',
-    label: 'Catalog · Search',
-    description: 'Search field configuration in the Catalog designer.',
+    label: 'Catalog · Indexed fields',
+    description: 'Indexed fields for Find a case and Dashboard filters in the Catalog designer.',
     defaultEnabled: true,
     group: 'designer'
   },
@@ -122,6 +148,13 @@ export const FEATURE_FLAG_CATALOG: FeatureFlagDefinition[] = [
     key: 'api.bulk_actions',
     label: 'Bulk actions API',
     description: 'HTTP endpoints for bulk operations.',
+    defaultEnabled: true,
+    group: 'api'
+  },
+  {
+    key: 'api.supervisor_dashboard',
+    label: 'Supervisor dashboard API',
+    description: 'HTTP endpoint for supervisor KPI and stage pressure summaries.',
     defaultEnabled: true,
     group: 'api'
   }

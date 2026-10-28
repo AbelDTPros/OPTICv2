@@ -110,23 +110,51 @@ export const BUILTIN_SEARCH_FIELD_KEYS = [
 export type BuiltinSearchFieldKey = (typeof BUILTIN_SEARCH_FIELD_KEYS)[number];
 
 export const BUILTIN_SEARCH_FIELD_DEFAULTS: SearchFieldDefinition[] = [
-  { fieldKey: 'trackingId', source: 'SYSTEM', path: '$workflow.trackingId', match: 'CONTAINS', pii: false },
+  {
+    fieldKey: 'trackingId',
+    source: 'SYSTEM',
+    path: '$workflow.trackingId',
+    match: 'CONTAINS',
+    pii: false,
+    useInSearch: true,
+    useInDashboard: false
+  },
   {
     fieldKey: 'receiptNumber',
     source: 'SYSTEM',
     path: '$workflow.receiptNumber',
     match: 'EXACT_PREFIX',
-    pii: true
+    pii: true,
+    useInSearch: true,
+    useInDashboard: false
   },
   {
     fieldKey: 'currentStageKey',
     source: 'SYSTEM',
     path: '$workflow.currentStageKey',
     match: 'EXACT_PREFIX',
-    pii: false
+    pii: false,
+    useInSearch: true,
+    useInDashboard: false
   },
-  { fieldKey: 'assignedTo', source: 'SYSTEM', path: '$workflow.assignedTo', match: 'EXACT_PREFIX', pii: false }
+  {
+    fieldKey: 'assignedTo',
+    source: 'SYSTEM',
+    path: '$workflow.assignedTo',
+    match: 'EXACT_PREFIX',
+    pii: false,
+    useInSearch: true,
+    useInDashboard: false
+  }
 ];
+
+export function fieldUsedInSearch(field: SearchFieldDefinition): boolean {
+  return field.useInSearch !== false;
+}
+
+export function fieldUsedInDashboard(field: SearchFieldDefinition): boolean {
+  return field.useInDashboard === true;
+}
 
 export const BUILTIN_SEARCH_FIELD_LABELS: Record<BuiltinSearchFieldKey, string> = {
   trackingId: 'Tracking ID',
@@ -166,6 +194,20 @@ export function extraSearchFields(
   return search.fields
     .map((field, index) => ({ field, index }))
     .filter(({ field }) => !isBuiltinSearchFieldKey(field.fieldKey));
+}
+
+/** Extra indexed fields shown on Workspace Find a case. */
+export function extraFindSearchFields(
+  search: SearchDefinition
+): Array<{ field: SearchFieldDefinition; index: number }> {
+  return extraSearchFields(search).filter(({ field }) => fieldUsedInSearch(field));
+}
+
+/** Extra indexed fields marked as Dashboard dimensions. */
+export function extraDashboardFields(
+  search: SearchDefinition
+): Array<{ field: SearchFieldDefinition; index: number }> {
+  return extraSearchFields(search).filter(({ field }) => fieldUsedInDashboard(field));
 }
 
 export interface ProjectedSearchOption {
@@ -250,7 +292,9 @@ export function removeSearchFieldProjection(
     return queues;
   }
   const stillNeeded = remainingSearch.fields.some(
-    (field) => field.path.trim().toLowerCase() === pathKey
+    (field) =>
+      field.path.trim().toLowerCase() === pathKey &&
+      (fieldUsedInSearch(field) || fieldUsedInDashboard(field))
   );
   if (stillNeeded) {
     return queues;
@@ -358,7 +402,9 @@ export function searchFieldFromProjected(option: ProjectedSearchOption): SearchF
     source: 'BUSINESS_DATA',
     path: option.path,
     match: 'CONTAINS',
-    pii: false
+    pii: false,
+    useInSearch: true,
+    useInDashboard: false
   };
 }
 
@@ -371,7 +417,9 @@ export function blankSearchField(projected?: ProjectedSearchOption): SearchField
     source: 'BUSINESS_DATA',
     path: '$.customField',
     match: 'EXACT_PREFIX',
-    pii: false
+    pii: false,
+    useInSearch: true,
+    useInDashboard: false
   };
 }
 

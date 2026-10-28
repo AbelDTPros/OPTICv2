@@ -84,6 +84,22 @@ export class MysqlQueueProjectionRepository implements QueueProjectionRepository
     );
   }
 
+  async listByDefinitionKeys(
+    definitionKeys: string[],
+    executor?: QueryExecutor
+  ): Promise<QueueProjectionRecord[]> {
+    const keys = [...new Set(definitionKeys.map((key) => key.trim()).filter(Boolean))];
+    if (keys.length === 0) {
+      return [];
+    }
+    const placeholders = keys.map(() => '?').join(', ');
+    const [rows] = await this.executor(executor).execute<ProjectionRow[]>(
+      `${selectSql()} WHERE definition_key IN (${placeholders})`,
+      keys
+    );
+    return rows.map(mapRow);
+  }
+
   async deleteByReleaseId(definitionReleaseId: number, executor?: QueryExecutor): Promise<number> {
     const [result] = await this.executor(executor).execute<ResultSetHeader>(
       `DELETE FROM workflow_queue_projection WHERE definition_release_id = ?`,

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { DesignerApiError } from '../designers/config-api.js';
-import { DesignerErrorBody, ErrorSummary } from '../ui/ErrorSummary.js';
+import { asDisplayError, type DisplayError } from '../api/apply-api-error.js';
+import { TrackingIdLinkWithCopy } from '../tracking/TrackingIdDisplay.js';
+import { CaughtErrorBanner } from '../ui/CaughtErrorBanner.js';
 import { ButtonLabel } from '../ui/Icon.js';
+import { PagerControls } from '../ui/PagerControls.js';
 import {
   getAdminAuditEvent,
   getAdminAuditFilterOptions,
@@ -51,7 +53,7 @@ export function AdminAuditPage() {
   const [selected, setSelected] = useState<AuditListItem | null>(null);
   const [actorOptions, setActorOptions] = useState<AuditActorOption[]>([]);
   const [definitionOptions, setDefinitionOptions] = useState<string[]>([]);
-  const [errorSummary, setErrorSummary] = useState<string>();
+  const [errorSummary, setErrorSummary] = useState<DisplayError | undefined>();
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
@@ -101,7 +103,7 @@ export function AdminAuditPage() {
         setItems([]);
         setTotal(0);
         setTotalPages(0);
-        setErrorSummary(formatAuditError(error));
+        setErrorSummary(asDisplayError(error, 'Audit trail request failed.'));
       } finally {
         setLoading(false);
       }
@@ -147,7 +149,7 @@ export function AdminAuditPage() {
     try {
       setSelected(await getAdminAuditEvent(item.eventId));
     } catch (error) {
-      setErrorSummary(formatAuditError(error));
+      setErrorSummary(asDisplayError(error, 'Audit trail request failed.'));
     } finally {
       setLoadingDetail(false);
     }
@@ -256,9 +258,7 @@ export function AdminAuditPage() {
       </form>
 
       {errorSummary ? (
-        <ErrorSummary key={errorSummary} focus>
-          <DesignerErrorBody message={errorSummary} />
-        </ErrorSummary>
+        <CaughtErrorBanner error={errorSummary} />
       ) : null}
 
       <div className="optic-admin-audit-toolbar">
@@ -283,34 +283,26 @@ export function AdminAuditPage() {
               ? 'No events'
               : `Showing ${rangeStart.toLocaleString()}–${rangeEnd.toLocaleString()} of ${total.toLocaleString()}`}
         </p>
-        <div className="optic-admin-audit-pager" role="navigation" aria-label="Audit pages">
-          <button
-            type="button"
-            className="optic-guide-button"
-            disabled={loading || page <= 1}
-            onClick={() => goToPage(page - 1)}
-          >
-            Previous
-          </button>
-          <span className="optic-admin-audit-page-label">
-            Page {totalPages === 0 ? 0 : page} of {totalPages}
-          </span>
-          <button
-            type="button"
-            className="optic-guide-button"
-            disabled={loading || totalPages === 0 || page >= totalPages}
-            onClick={() => goToPage(page + 1)}
-          >
-            Next
-          </button>
-        </div>
+        <PagerControls
+          page={page}
+          totalPages={totalPages}
+          disabled={loading}
+          ariaLabel="Audit pages"
+          onPageChange={goToPage}
+        />
       </div>
 
       <div className="optic-admin-audit-layout">
         <div className="optic-admin-audit-list-pane">
-          {loading ? <p className="optic-help">Loading audit events…</p> : null}
+          {loading ? (
+            <p className="optic-help" role="status" aria-live="polite">
+              Loading audit events…
+            </p>
+          ) : null}
           {!loading && items.length === 0 ? (
-            <p className="optic-help">No audit events match these filters.</p>
+            <p className="optic-help" role="status">
+              No audit events match these filters.
+            </p>
           ) : null}
           {items.length > 0 ? (
             <div className="optic-queue-table-wrap">
@@ -338,8 +330,15 @@ export function AdminAuditPage() {
                         <code className="optic-admin-audit-type">{item.eventType}</code>
                       </td>
                       <td>{item.actorName || item.actorId || '—'}</td>
-                      <td className="optic-admin-audit-entity">
-                        {item.entityTrackingId || item.definitionKey || item.entityType || '—'}
+                      <td
+                        className="optic-admin-audit-entity"
+                        onClick={item.entityTrackingId ? (event) => event.stopPropagation() : undefined}
+                      >
+                        {item.entityTrackingId ? (
+                          <TrackingIdLinkWithCopy trackingId={item.entityTrackingId} />
+                        ) : (
+                          item.definitionKey || item.entityType || '—'
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -380,8 +379,20 @@ export function AdminAuditPage() {
                 </div>
                 <div>
                   <dt>Entity</dt>
-                  <dd>
-                    {[selected.entityType, selected.entityTrackingId].filter(Boolean).join(' · ') || '—'}
+                  <dd className="optic-admin-audit-entity-detail">
+                    {selected.entityType || selected.entityTrackingId ? (
+                      <>
+                        {selected.entityType ? <span>{selected.entityType}</span> : null}
+                        {selected.entityType && selected.entityTrackingId ? (
+                          <span aria-hidden="true"> · </span>
+                        ) : null}
+                        {selected.entityTrackingId ? (
+                          <TrackingIdLinkWithCopy trackingId={selected.entityTrackingId} />
+                        ) : null}
+                      </>
+                    ) : (
+                      '—'
+                    )}
                   </dd>
                 </div>
                 <div>
@@ -434,12 +445,3 @@ function formatWhen(value: string): string {
   });
 }
 
-function formatAuditError(error: unknown): string {
-  if (error instanceof DesignerApiError) {
-    return error.message;
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return 'Audit trail request failed.';
-}

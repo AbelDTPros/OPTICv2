@@ -113,6 +113,31 @@ export class MysqlAuditEventRepository implements AuditEventRepository {
     return { items, page, pageSize, total, totalPages };
   }
 
+  async listRecentForDefinitions(
+    definitionKeys: string[],
+    eventTypes: string[],
+    limit: number,
+    executor?: QueryExecutor
+  ): Promise<AuditEventRecord[]> {
+    const keys = [...new Set(definitionKeys.map((key) => key.trim()).filter(Boolean))];
+    const types = [...new Set(eventTypes.map((type) => type.trim()).filter(Boolean))];
+    const capped = Math.max(1, Math.min(50, Math.trunc(Number(limit)) || 15));
+    if (keys.length === 0 || types.length === 0) {
+      return [];
+    }
+    const keyPlaceholders = keys.map(() => '?').join(', ');
+    const typePlaceholders = types.map(() => '?').join(', ');
+    const [rows] = await this.executor(executor).execute<AuditRow[]>(
+      `${AUDIT_SELECT}
+        WHERE definition_key IN (${keyPlaceholders})
+          AND event_type IN (${typePlaceholders})
+        ORDER BY id DESC
+        LIMIT ${capped}`,
+      [...keys, ...types]
+    );
+    return rows.map(mapAudit);
+  }
+
   async listAdminFilterOptions(executor?: QueryExecutor): Promise<AuditFilterOptions> {
     const client = this.executor(executor);
     const [actorRows] = await client.execute<

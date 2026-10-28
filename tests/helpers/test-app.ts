@@ -11,6 +11,7 @@ import { AdminAuditService } from '../../src/modules/admin-audit/service/admin-a
 import { InMemoryFeatureFlagRepository } from '../../src/modules/feature-flags/persistence/in-memory-feature-flag.repository.js';
 import { FeatureFlagService } from '../../src/modules/feature-flags/service/feature-flag.service.js';
 import { SearchService } from '../../src/modules/search/service/search.service.js';
+import { SupervisorDashboardService } from '../../src/modules/supervisor/service/supervisor-dashboard.service.js';
 import { InMemoryTrackingRepository } from '../../src/modules/tracking/persistence/in-memory-tracking.repository.js';
 import { TrackingService } from '../../src/modules/tracking/service/tracking.service.js';
 import { InMemoryWorkflowInstanceRepository } from '../../src/modules/workflow/persistence/in-memory-workflow-instance.repository.js';
@@ -138,6 +139,13 @@ export function createTestRuntime(
     uiEnabled: config.featureAdmin.uiEnabled,
     apiEnabled: config.featureAdmin.apiEnabled
   });
+  const supervisor = new SupervisorDashboardService(
+    projections,
+    audit,
+    repository,
+    loader,
+    authorization
+  );
   const splunk = new InMemorySplunkEventRepository();
   const pipeline = new OutboxPipeline(outbox, deliveries, audit, splunk, config.outboxPublisher);
   const app = createApp(
@@ -152,7 +160,8 @@ export function createTestRuntime(
     search,
     tracking,
     features,
-    adminAudit
+    adminAudit,
+    supervisor
   );
   return {
     app,
@@ -172,6 +181,7 @@ export function createTestRuntime(
     features,
     featureFlags,
     adminAudit,
+    supervisor,
     deliveries,
     audit,
     splunk,

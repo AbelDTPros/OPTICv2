@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { QueueDefinition, SearchDefinition } from '../../../../src/modules/configuration/domain/types.js';
 import {
   ensureSearchFieldProjected,
+  extraDashboardFields,
+  extraFindSearchFields,
   listProjectedSearchOptions,
   removeSearchFieldProjection,
   uniqueExtraSearchFields
@@ -102,5 +104,55 @@ describe('projected search options', () => {
       { searchKey: 'DEFAULT', fields: [] }
     );
     expect(next.A?.projectedFields).toHaveLength(1);
+  });
+
+  it('splits extras into Find vs Dashboard by flags', () => {
+    const search: SearchDefinition = {
+      searchKey: 'DEFAULT',
+      fields: [
+        {
+          fieldKey: 'trackingId',
+          source: 'SYSTEM',
+          path: '$workflow.trackingId',
+          match: 'CONTAINS',
+          pii: false
+        },
+        {
+          fieldKey: 'findOnly',
+          source: 'BUSINESS_DATA',
+          path: '$.findOnly',
+          match: 'CONTAINS',
+          pii: false,
+          useInSearch: true,
+          useInDashboard: false
+        },
+        {
+          fieldKey: 'dashOnly',
+          source: 'BUSINESS_DATA',
+          path: '$.dashOnly',
+          match: 'EXACT_PREFIX',
+          pii: false,
+          useInSearch: false,
+          useInDashboard: true
+        },
+        {
+          fieldKey: 'both',
+          source: 'BUSINESS_DATA',
+          path: '$.both',
+          match: 'CONTAINS',
+          pii: false,
+          useInSearch: true,
+          useInDashboard: true
+        }
+      ]
+    };
+    expect(extraFindSearchFields(search).map(({ field }) => field.fieldKey)).toEqual([
+      'findOnly',
+      'both'
+    ]);
+    expect(extraDashboardFields(search).map(({ field }) => field.fieldKey)).toEqual([
+      'dashOnly',
+      'both'
+    ]);
   });
 });

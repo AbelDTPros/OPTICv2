@@ -1,16 +1,16 @@
 # Officer Workspace user guide
 
-A plain-language, step-by-step guide for people who **process mail and workloads** in OPTIC NextGen.
+A plain-language, step-by-step guide for people who **process mail and workloads** in OPTIC v2.0.
 
 You do **not** need to know programming, databases, or how the process was built. If you can fill in a web form and work from a list of tasks, you can use Workspace.
 
 This guide assumes you are a **new officer** (or a supervisor helping officers). It explains what you see on the screen, why it is there, and exactly what to click for everyday work.
 
-**Officers work in Live only.** Practice and draft rehearsal are done by process authors in **Designer**, not by officers. If someone asks you to “try a draft” or open Designer, that is not part of the officer job.
+**Officers work in Live.** Practice against a draft belongs to process authors (**Designer → Try**, or Workspace **Try** when that toggle is enabled for authors). If someone asks you to rehearse a draft as part of authoring, that is not day-to-day officer work.
 
 **Companion guide (for authors, not officers):** [Designer user guide](./designer-user-guide.md)
 
-**In the product:** open Workspace and click **User guide** (top right of the Officer workspace header) to read this guide inside the app.
+**In the product:** open Workspace and click **User guide** in the Officer workspace header to read this guide inside the app. You can also open **Jump to…** (⌘K / Ctrl+K) and search for help destinations when that command palette is enabled.
 
 ---
 
@@ -56,7 +56,7 @@ Read sections 1–8 once when you start. Keep sections 9–14 as a reference.
 Think of it like a physical mailroom plus file desk combined:
 
 - The **queues** on the left are stacks of folders waiting at each step of the process.
-- When you **open** a case, you see the form for the step that folder is currently on.
+- When you **open** a case, a **case drawer** opens with the form for the step that folder is currently on.
 - When you **Complete** a case, you are saying “I finished this step,” and the system moves the folder to the next stack (or marks it finished).
 
 ### What you use Workspace for
@@ -74,19 +74,21 @@ Think of it like a physical mailroom plus file desk combined:
 
 - You do **not** design forms, stages, or queues. Process authors do that in **Designer**.
 - You do **not** “activate” a process for Live. Publishers do that.
-- You do **not** use Designer **Try** as part of officer work. Try is author rehearsal only.
+- You do **not** use draft **Try** as part of normal officer duties. Try is author rehearsal.
 
 | Area | Who uses it | Purpose |
 | --- | --- | --- |
-| **Workspace** | Officers (and supervisors helping officers) | Daily Live work |
+| **Workspace (Live)** | Officers (and supervisors helping officers) | Daily Live work |
+| **Workspace (Try)** / **Designer → Try** | Authors | Rehearse a draft before Activate |
 | **Designer** | Authors / reviewers / publishers | Build, rehearse, and publish the process |
+| **Dashboard** | Supervisors | Shift overview; can jump you into Workspace on a stage or case |
 
-### What “Live” means for you
+### What “Live” and “Try” mean
 
-At the top of Workspace you may see **Try** and **Live** toggles. **Officers stay on Live.**
+At the top of Workspace you may see **Try** and **Live** toggles (when Try mode is enabled).
 
-- **Live** = real activated work that counts for the office.
-- **Try** (if visible) = draft rehearsal for authors. Ignore it for officer duties.
+- **Live** = real activated work that counts for the office. **Officers stay here.**
+- **Try** = draft rehearsal for authors against saved drafts. Ignore it for officer duties.
 
 If Live shows no workload types, nothing has been activated yet — ask a publisher or support, not another officer.
 
@@ -149,39 +151,39 @@ Keep this table nearby for your first week.
 | **Live** | Real activated work — what officers use | Production desk |
 | **Signed in as** | The name or email that counts as “you” for assign and “Assigned to Me” | Your badge / sign-in name |
 | **Unassigned** | Nobody currently owns the case | Folder still on the shared stack |
+| **Past SLA** / **On track** | Timing status for the stage (when authors configured an SLA) | How late the folder is vs the desk clock |
 | **ACTIVE** / **COMPLETED** | Rough case status you may see as a pill | Still in process vs finished |
+| **Jump to…** | Quick search across Workspace, Dashboard, Designer, Admin | Shortcut desk directory |
 | **User guide** | This document, also available as a button in the header | The laminated how-to sheet on the desk |
 
 ---
 
 ## 4. The Workspace screen
 
-Open **Workspace** from the navy product header (next to Designer). You should see **Officer workspace**.
+Open **Workspace** from the product header (or **Jump to…** → Workspace). You should see **Officer workspace**.
 
-### Top header (hero)
+### Top header
 
 | Control | What it does |
 | --- | --- |
-| Kicker text (**Activated work** or **Draft rehearsal**) | Reminds you whether you are on Live or Try |
-| Title **Officer workspace** | Confirms you are in the officer product |
+| Context line | Shows mode (Live / Try), workload type, queue, Signed in as, and open tracking ID when a case is open |
 | **Signed in as** | Who you are for assign / Assigned to Me — see [section 5](#5-signed-in-as-who-am-i) |
 | **Try** / **Live** | Mode switch — officers use **Live** |
 | **User guide** | Opens this guide in a dialog |
+| **Find a case** (when collapsed) | Expands Find so you can search without leaving the desk |
 
 ### Left side (sidebar)
 
 Work top to bottom:
 
-1. **Workload Type** — pick the kind of work (for example I-407). Type to search if the list is long.
+1. **Workload Type** — pick the kind of work (for example I-407). Type to search if the list is long. Use the clear control (×) if you need to unselect.
 2. **New mail arrives** or **New work arrives** — start a brand-new intake (see [section 9](#9-new-mail-arrives--new-work-arrives)). The button label depends on whether this type starts with mail or with a workload-only path.
 3. **Queues** — grouped lists:
    - **Mail item queues** (when this type has mail)
    - **Workload queues**
    - Each queue shows a **count** of cases.
 
-Under the type picker you may see a short line like:  
-`I-407 · activated queues plus Assigned to Me, All Items, and Completed`  
-That means Live is ready for that type.
+Your last Workload Type is remembered for next time you open Workspace.
 
 ### Main area (center / right)
 
@@ -189,35 +191,54 @@ What you see depends on what you clicked:
 
 | Situation | Main area shows |
 | --- | --- |
-| No case open, no queue selected | Guidance to open a queue or find a case |
+| No case open, no queue selected | Guidance to open a queue, find a case, or start new work |
 | A queue selected | The **queue table** (list of cases) |
-| A case open | The **case pane** (status, form, actions, labels, history) |
+| A case open | A **case drawer** over the desk (form, actions, labels, history) |
 | After a Find search | Match list, then a case if you open one |
 
-**Find a case** usually sits near the top of the main pane: Tracking ID, Receipt number, Advanced search (when offered), Search, and Clear.
+**Find a case** sits in the workspace (often above the desk): Tracking ID, Receipt number, Advanced search (when offered), Search, and Clear. You can collapse Find when you need more room for the queue.
 
 ### How the layout changes when a case is open
 
-When you open a case, the desk focuses on that case. Use **Queues** (back) or **Escape** to return to the list. You are not deleting the case when you go back — you are only closing the view.
+When you open a case:
+
+- A **case drawer** opens on the side (on smaller screens it may cover more of the desk).
+- Actions (**Complete**, **Print labels**, **Close case**) stay pinned at the bottom of the drawer while the form scrolls.
+- Use **Back to queues**, **Close case**, or **Escape** to return to the list. You are not deleting the case — you are only closing the view.
 
 ---
 
 ## 5. Signed in as (who am I?)
 
-In this product demo, you type a name or email in **Signed in as** (for example `officer@example.gov`).
+In this product demo, **Signed in as** is who the desk treats as you for assign and **Assigned to Me** (for example `officer@example.gov`).
+
+When Admin has **Signed in as override** on (the default for demos), you can type a name or email in that field. When the override is off, the field is read-only and uses the fixed demo officer identity until real sign-in (ICAM) replaces it.
 
 That value is used when you:
 
 - **Assign** a case to yourself
 - See **Assigned to Me**
 - Appear as the assignee on the case for others
+- Pass the “must be assigned to you” check on **Complete** / **Save**
+
+### Critical rule: Assigned to must match Signed in as
+
+Complete and Save often require the case to be assigned to **exactly** the same id as **Signed in as** (same spelling, no extra spaces).
+
+| What you see | What it means |
+| --- | --- |
+| Case shows **Assigned to** `alice@example.gov` and Signed in as is also `alice@example.gov` | You can Complete when the form is valid |
+| Case shows Assigned to someone else, or a slightly different spelling | You get “Assign the item to yourself and try again” even though the case looks assigned |
+
+If Signed in as was edited but not committed (click away from the field or press Enter), the box may still show a draft value while the system uses the previous id. Commit the field, then compare it to **Assigned to**.
 
 ### Tips for new officers
 
 1. Use a **clear, consistent** value every day — ideally your work email, the same spelling every time.
 2. If you change **Signed in as** mid-day, **Assigned to Me** follows the **new** value. Cases assigned to the old value will not appear under the new one until reassigned.
-3. **Reassign** asks for another person’s id — type the id that person uses in **Signed in as**, not a free-text nickname they never use.
-4. Do not share one Signed in as value across two people working at the same time. Assignment collisions and “who owns this?” confusion follow.
+3. **Assign** is disabled when the case is already assigned to **anyone**. To take a case from another officer, use **Reassign** (when allowed) or ask them to **Release**.
+4. **Reassign** asks for another person’s id — type the id that person uses in **Signed in as**, not a nickname they never use.
+5. Do not share one Signed in as value across two people working at the same time.
 
 ### Supervisors
 
@@ -248,7 +269,11 @@ Nothing is activated for Live yet. Officers cannot activate a process themselves
 
 ### If you see the wrong queues
 
-You may have the wrong Workload Type selected. Switch the type and confirm the queue names match the desk you are covering (mail vs data entry vs shipping).
+You may have the wrong Workload Type selected. Switch the type and confirm the queue names match the desk you are covering (mail vs data entry vs shipping). Clear the type (×) if you need to start the picker over.
+
+### Arriving from Dashboard
+
+Supervisors may open Workspace from the **Dashboard** (Needs attention, a stage tile, or a case). Workspace tries to land you on the matching Workload Type and queue. Confirm the type and queue before you Assign or Complete.
 
 ---
 
@@ -275,8 +300,16 @@ Queues usually follow the **order of the process** (earlier stages nearer the to
 
 1. Click the queue name on the left.
 2. The main area shows the table for that queue.
-3. Read the columns (tracking ID, assignment, names, dates — whatever authors configured).
+3. Read the columns (tracking ID, assignment, SLA, names, dates — whatever authors configured).
 4. Use **row numbers** to keep your place when talking with a coworker (“row 4”).
+
+### Filters and chips
+
+When a queue has filters:
+
+1. Set the filter values you need.
+2. Active filters appear as **chips** above the table.
+3. Clear one chip, or **Clear all**, when you want the full list again.
 
 ### What you can usually do in the list
 
@@ -285,11 +318,13 @@ Exact buttons depend on the process, but typically:
 | Action | Meaning |
 | --- | --- |
 | **Assign to me** | Claim the row for yourself |
-| **Open** (or click the row) | Open the case pane |
+| **Open** (or click the row) | Open the case drawer |
 | **Release** | Return an assigned case to the pool (when allowed) |
 | **Reassign** | Hand to another officer (when allowed) |
 | **Pages** / next-previous | Move through long lists |
 | **Filters** | Narrow by assignment status or other catalog filters |
+
+Some queues show **SLA** badges (for example On track, Warning, Past SLA) when authors configured timing for that stage.
 
 ### Empty queue
 
@@ -316,19 +351,32 @@ This is the core of officer work: take a case, fill the form, finish the stage.
 1. Pick **Workload Type**.
 2. Open the queue for the stage you work (for example Ready for Data Entry).
 3. Click **Assign to me** on a row (or open the case first, then **Assign**).
-4. Confirm the header shows **Assigned to** you (your Signed in as value).
+4. Confirm the header shows **Assigned to** you — the **same** spelling as **Signed in as**.
 5. Fill in the form fields for that stage. Required fields must be filled before Complete will succeed.
 6. Click **Save** (if available) if you need to pause without finishing.
 7. Click **Complete** (or the named action shown — authors choose the label) when finished.
-8. The case moves to the next stage — or finishes, if this was the last step.
-9. Click **Queues** to return to the list and take the next item.
+8. A short success toast may appear (for example “Moved to …” or “Draft saved”).
+9. The case moves to the next stage — or finishes, if this was the last step.
+10. Click **Close case** / **Back to queues** (or press Escape) and take the next item.
 
 ### What success looks like after Complete
 
-- A short status message may appear.
+- A short status toast may appear.
 - The case leaves the current queue (count drops).
 - It appears in the next stage’s queue, or in **Completed** if the process ended.
 - If you still have the case open and it is terminal, you may see a note that earlier screens are read-only.
+
+### When Complete fails (validation)
+
+If required fields are missing or data is invalid:
+
+1. An error summary appears on the form with a count of fields that need attention.
+2. Invalid fields are highlighted.
+3. The desk scrolls to the **first** problem field and moves focus there.
+4. Click an error message in the summary to jump to that field (without collapsing the case drawer).
+5. Fix the fields, then Complete again.
+
+If the message says to assign the item to yourself, compare **Assigned to** with **Signed in as** — see [section 5](#5-signed-in-as-who-am-i).
 
 ### Case header: status and assignment
 
@@ -344,20 +392,20 @@ At the top of an open case you will see:
 
 | Button | When to use it |
 | --- | --- |
-| **Assign** | Take the case. Often required before Complete. Disabled if already assigned. |
+| **Assign** | Take the case. Often required before Complete. Disabled if already assigned to anyone. |
 | **Release** | Put it back on the queue. Use when you cannot finish and someone else should take it. |
-| **Reassign** | Give it to a named colleague. Opens a small dialog asking for their id. |
+| **Reassign** | Give it to a named colleague. Opens a dialog asking for their id. Escape cancels; focus returns to where you were. |
 
 ### Form area
 
 The middle of the case is the **stage form**:
 
 - Fields are grouped into **sections** (for example Applicant Information).
-- Some fields are **required** — leave them blank and Complete will fail.
+- Some fields are **required** — leave them blank and Complete will fail with highlighted errors.
 - Some fields are **read-only** — earlier data or system values you should not change.
 - On finished / terminal cases, forms stay visible but are read-only.
 
-Fill carefully. Dates and numbers must match the format the field expects. If Complete complains about a field, fix that field first rather than clicking Complete repeatedly.
+Fill carefully. Dates and numbers must match the format the field expects. Fix highlighted fields first rather than clicking Complete repeatedly.
 
 ### Earlier screens and linked mail
 
@@ -365,18 +413,18 @@ Fill carefully. Dates and numbers must match the format the field expects. If Co
 | --- | --- |
 | **Earlier stage screens** | Read-only history of forms from previous stages — useful for context |
 | **Linked mail item** | Parent packet; open mail screens below for intake data |
-| **Stage history** | Expandable list of when the case entered stages and who was involved |
+| **Stage history** | Expandable timeline of stages with who and when; click a completed step to open that earlier screen |
 
 Use history when a customer asks “where has this been?” Do not try to edit history.
 
-### Buttons on the case footer
+### Buttons on the case footer (sticky)
 
 | Button | Meaning |
 | --- | --- |
 | **Complete** / named action | Finish this stage (primary action) |
 | Other named actions | Extra actions authors configured (follow your desk procedures) |
 | **Print labels** | Print stickers for this case (and related packet items when shown) |
-| **Queues** | Close the case view and return to the list |
+| **Close case** | Close the case drawer and return to the list |
 
 ### Brand-new intake you have not saved yet
 
@@ -405,7 +453,7 @@ The first screen is a **draft**.
 
 | What you do | Result |
 | --- | --- |
-| Only look around, then click **Queues** / Escape | **No case is kept** — the draft is discarded |
+| Only look around, then close the case / Escape | **No case is kept** — the draft is discarded |
 | **Assign**, **Save**, or **Complete** | The case is **saved** and will appear in queues |
 
 That design is intentional. Accidental clicks should not fill queues with empty orphan cases.
@@ -416,7 +464,7 @@ Treat it like any other case: assign if needed, fill required fields, Complete w
 
 ### Naming tip for customers
 
-Write or print the **tracking ID** on the physical packet when your office procedure requires it. That ID is how Find a case and labels reconnect the paper to the screen.
+Write or print the **tracking ID** on the physical packet when your office procedure requires it. That ID is how Find a case and labels reconnect the paper to the screen. Use the copy control on the tracking id when you need to paste it elsewhere.
 
 ---
 
@@ -426,14 +474,17 @@ Use **Find a case** when you have a sticker, scan, receipt, or partial id and ne
 
 ### Tracking ID search
 
-1. Click into **Tracking ID** (or press **/** when you are not typing in another field).
-2. Scan the label, paste a full payload, or type part of the id.
-3. Press Search (or follow on-screen behavior).
+1. Expand Find if it is collapsed, or press **/** when you are not typing in another field.
+2. Click into **Tracking ID**.
+3. Scan the label, paste a full payload, or type part of the id.
+4. Press Search (or follow on-screen behavior).
 
 | What you entered | What usually happens |
 | --- | --- |
 | Full exact tracking ID or QR payload (`OPTIC:MAIL:…` / `OPTIC:WORKLOAD:…`) | Often **opens the case immediately** |
 | Partial text | A **list of matches** — click a row to open |
+
+While search is running you may briefly see **Searching…**.
 
 ### Receipt number search
 
@@ -449,7 +500,7 @@ Receipt search is helpful when the sticker is missing but the form receipt is kn
 
 ### Advanced search
 
-If **Advanced search** is available, it may add entity type, stage, assignee, or catalog extras. Use it when basic Tracking ID / Receipt is not enough. Keep filters as narrow as you can so the list stays usable.
+If **Advanced** is available, it may add entity type, stage, assignee, or catalog extras. Use it when basic Tracking ID / Receipt is not enough. Keep filters as narrow as you can so the list stays usable.
 
 ### Tips
 
@@ -516,11 +567,13 @@ This is normal office behavior in electronic form. Treat it like two people reac
 | No workload types | Nothing activated for Live yet | Ask a publisher to activate the process in Designer |
 | Empty queue | No cases at that stage right now | Check Assigned to Me, All Items, Find a case, or New mail arrives |
 | Cannot Assign | Stage may not allow assign, already assigned, or conflict | Refresh; check status; ask supervisor |
-| Cannot Complete | Required fields missing, wrong formats, or not assigned when required | Fill required fields; fix highlighted errors; Assign first if needed |
+| “Assign the item to yourself…” but it looks assigned | **Assigned to** ≠ **Signed in as** (exact spelling) | Match Signed in as to the assignee, or Reassign to your id; commit the Signed in as field (blur / Enter) |
+| Cannot Complete / highlighted fields | Required fields missing, wrong formats | Use the error summary links; fix highlighted fields; Assign first if needed |
 | Complete succeeded but you cannot find the case | It moved to the next stage | Open the next queue or All Items; use Find a case with the tracking ID |
 | Name columns blank in a queue | Process may be projecting the wrong field names | Report to support / process authors (configuration issue — not something you fix in Workspace) |
 | Signed in as changed and Assigned to Me is empty | You are looking under a different id | Set Signed in as back to the id that owns the cases, or reassign |
-| New mail disappeared after Queues | Draft was never Assign/Save/Complete’d | Create again and take an action so it is kept |
+| New mail disappeared after close | Draft was never Assign/Save/Complete’d | Create again and take an action so it is kept |
+| Case drawer looks “squished” after an error click | Rare layout glitch from jumping to a field | Close and reopen the case; report if it persists |
 | Error with a **reference id** | System recorded the failure | Copy the reference id for support — do **not** paste personal data (A-Numbers, full receipts) into chat or tickets |
 | Linked mail missing on a workload | Packet was not attached during mail Complete | Ask a lead; check Doc Prep on the parent mail |
 
@@ -545,7 +598,7 @@ Do **not** send full Social Security numbers, full A-Numbers, or secrets in chat
 
 1. Open **Workspace**.
 2. Confirm **Live**.
-3. Set **Signed in as** to your id.
+3. Set **Signed in as** to your id (commit with Enter or click away).
 4. Pick the **Workload Type**.
 5. Open your main queue (or **Assigned to Me**).
 6. Work assign → fill → complete.
@@ -589,12 +642,13 @@ Assign one real Live case, fill the form, Complete it, and find it again by trac
 2. **Pick the Workload Type** your trainer names.
 3. **Open the queue** they name (for example Ready for Data Entry).
 4. **Assign to me** on the first available row (or a row they designate).
-5. **Read the form** — ask which fields are required for your desk.
-6. **Enter practice-safe data** your trainer provides (never invent real person data in a shared demo without guidance).
-7. **Complete** the stage.
-8. **Copy the tracking ID** from the case or label.
-9. Click **Queues**, then use **Find a case** with that tracking ID.
-10. Confirm you can open it again and see where it went (next queue or Completed).
+5. Confirm **Assigned to** matches **Signed in as**.
+6. **Read the form** — ask which fields are required for your desk.
+7. **Enter practice-safe data** your trainer provides (never invent real person data in a shared demo without guidance).
+8. **Complete** the stage. If errors appear, follow the highlighted fields.
+9. **Copy the tracking ID** from the case or label.
+10. Close the case, then use **Find a case** with that tracking ID.
+11. Confirm you can open it again and see where it went (next queue or Completed).
 
 If any step fails, use [section 13](#13-common-problems-and-what-to-do) before trying a second case — fix the first failure pattern first.
 
@@ -605,12 +659,15 @@ If any step fails, use [section 13](#13-common-problems-and-what-to-do) before t
 | Shortcut / tip | What it does |
 | --- | --- |
 | **/** (when not typing in a field) | Jump to Find a case |
-| **Escape** | Leave an open case and return toward the queues |
+| **⌘K** / **Ctrl+K** (when enabled) | Open **Jump to…** command palette |
+| **Escape** | Close an open case and return toward the queues |
 | Scan labels when possible | Avoids typos in tracking IDs |
 | One Signed in as value per person | Keeps Assigned to Me trustworthy |
+| Commit Signed in as (Enter / blur) before Complete | Avoids “assign to yourself” mismatches |
 | Assign before long data entry | Reduces conflict with other officers |
 | Save if you must step away | Protects typed work without Completing early |
-| Read error text once carefully | Usually names the missing field or conflict |
+| Read error summary once carefully | Usually names the missing field or conflict |
+| Click an error in the summary | Jumps to that field in the case drawer |
 
 ---
 

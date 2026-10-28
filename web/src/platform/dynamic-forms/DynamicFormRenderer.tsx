@@ -1,8 +1,11 @@
+import { useEffect, useRef } from 'react';
 import {
   fieldStoragePath,
   formHasSharedEntityFields
 } from '../../../../src/modules/configuration/domain/shared-entity-paths.js';
 import type { FormFieldDefinition, JsonSchema, StageFormDefinition } from '../../../../src/modules/configuration/domain/types.js';
+import { ErrorFieldLink } from '../accessibility/ErrorFieldLink.js';
+import { focusFormField } from '../accessibility/focus-field.js';
 import { fieldInputId } from '../accessibility/field-ids.js';
 import {
   displayFromStoragePath,
@@ -70,6 +73,24 @@ export function DynamicFormRenderer({
   const visibleErrors = errors.filter((error) => states[error.fieldKey]?.visible !== false);
   const TitleTag = headingLevel === 1 ? 'h1' : 'h2';
   const SectionTag = headingLevel === 1 ? 'h2' : 'h3';
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const errorSignature = visibleErrors.map((error) => `${error.fieldKey}:${error.message}`).join('|');
+
+  useEffect(() => {
+    if (!errorSummary && visibleErrors.length === 0) {
+      return;
+    }
+    const summary = summaryRef.current;
+    summary?.focus({ preventScroll: true });
+    const first = visibleErrors[0];
+    if (!first) {
+      return;
+    }
+    const inputId = first.inputId ?? fieldInputId(first.fieldKey);
+    window.setTimeout(() => {
+      focusFormField(inputId);
+    }, 120);
+  }, [errorSignature, errorSummary, visibleErrors.length]);
 
   function fieldValue(field: FormFieldDefinition): unknown {
     const displayFromPath = displayFromStoragePath(field, formsForDisplay);
@@ -115,16 +136,31 @@ export function DynamicFormRenderer({
         </div>
       </header>
       {errorSummary || visibleErrors.length > 0 ? (
-        <div className="optic-error-summary" id={summaryId} role="alert" tabIndex={-1}>
+        <div
+          className="optic-error-summary"
+          id={summaryId}
+          role="alert"
+          tabIndex={-1}
+          ref={summaryRef}
+          aria-live="assertive"
+        >
           <ErrorHeading />
-          <p>{errorSummary ?? 'Review the highlighted fields and try again.'}</p>
+          <p>
+            {errorSummary ?? 'Review the highlighted fields and try again.'}
+            {visibleErrors.length > 0
+              ? ` ${visibleErrors.length} ${visibleErrors.length === 1 ? 'field needs' : 'fields need'} attention.`
+              : ''}
+          </p>
           {visibleErrors.length > 0 ? (
             <ul>
-              {visibleErrors.map((error) => (
-                <li key={error.fieldKey}>
-                  <a href={`#${error.inputId ?? fieldInputId(error.fieldKey)}`}>{error.message}</a>
-                </li>
-              ))}
+              {visibleErrors.map((error) => {
+                const inputId = error.inputId ?? fieldInputId(error.fieldKey);
+                return (
+                  <li key={error.fieldKey}>
+                    <ErrorFieldLink inputId={inputId}>{error.message}</ErrorFieldLink>
+                  </li>
+                );
+              })}
             </ul>
           ) : null}
         </div>
@@ -214,3 +250,4 @@ function resolveCaseValue(
 function recordHasSharedEntityRoot(record: Record<string, unknown>): boolean {
   return 'workload' in record || 'mailItem' in record;
 }
+

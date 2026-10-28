@@ -1,8 +1,11 @@
 export const FEATURE_FLAG_KEYS = [
   'ui.shell.workspace',
   'ui.shell.designer',
+  'ui.shell.supervisor',
+  'ui.shell.command_palette',
   'ui.workspace.try_mode',
   'ui.workspace.search',
+  'ui.workspace.actor_override',
   'ui.designer.catalog.sla',
   'ui.designer.catalog.bulk',
   'ui.designer.catalog.scheduled',
@@ -12,7 +15,8 @@ export const FEATURE_FLAG_KEYS = [
   'ui.designer.lifecycle',
   'ui.designer.diff',
   'api.search',
-  'api.bulk_actions'
+  'api.bulk_actions',
+  'api.supervisor_dashboard'
 ] as const;
 
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number];

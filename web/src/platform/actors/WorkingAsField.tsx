@@ -3,17 +3,29 @@ import { useEffect, useState } from 'react';
 export function WorkingAsField({
   value,
   onChange,
-  label = 'Working as'
+  label = 'Working as',
+  readOnly = false
 }: {
   value: string;
   onChange: (actorId: string) => void;
   label?: string;
+  /** When true, show identity only (ICAM / fixed demo officer — no override). */
+  readOnly?: boolean;
 }) {
   const [draft, setDraft] = useState(value);
 
   useEffect(() => {
     setDraft(value);
   }, [value]);
+
+  if (readOnly) {
+    return (
+      <p className="optic-working-as optic-working-as-readonly" role="group" aria-label={label}>
+        <span className="optic-working-as-label">{label}</span>
+        <strong className="optic-working-as-value">{value}</strong>
+      </p>
+    );
+  }
 
   function commit() {
     const next = draft.trim();

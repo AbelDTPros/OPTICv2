@@ -1,17 +1,17 @@
 # Designer user guide
 
-A plain-language, step-by-step guide for people who **build and publish** mail and workload processes in OPTIC NextGen.
+A plain-language, step-by-step guide for people who **build and publish** mail and workload processes in OPTIC v2.0.
 
 You configure screens, stages, queues, and rules. Officers then use those recipes in **Workspace (Live)**. You do **not** need to write application code, run terminals, or understand the database.
 
 This guide is written for a **newbie author** — someone who has never published a process before. It explains the ideas first, then walks through each Designer area with enough detail that you can build, rehearse, and activate a process with confidence.
 
-**Try / rehearsal is for authors** (inside Designer). **Officers do not use Try** — they only process activated Live work after you Activate.
+**Try / rehearsal is for authors** (inside Designer → Try, or Workspace **Try** when enabled). **Officers do not use Try for daily work** — they only process activated Live work after you Activate.
 
 **Companion guide (for officers):** [Officer Workspace user guide](./officer-workspace-user-guide.md)  
 **Deep technical walkthrough (keys, JSONPath, worked example):** [Onboard a new workload from scratch](./onboard-a-new-workload.md)
 
-**In the product:** open Designer and click **User guide** (far right of the Designer nav) to read this guide inside the app.
+**In the product:** open Designer and click **User guide** (far right of the Designer nav) to read this guide inside the app. **Jump to…** (⌘K / Ctrl+K) can also take you to Designer areas when the command palette is enabled.
 
 ---
 
@@ -77,13 +77,15 @@ Keep a notepad for every **key** you invent (`I_407_WORKLOAD`, `READY_FOR_DATA_E
 ### What you do *not* do in Designer
 
 - You do not process the office’s daily Live queue as an officer duty (use Workspace Live for that smoke test only).
-- You do not expect unsaved canvas edits to appear in Try — **save first**.
+- You do not expect unsaved canvas edits to appear in Try — **save first** (or wait for autosave — see [section 4](#4-tour-of-designer)).
 - You do not rewrite history for old tracking IDs by publishing a new version — old cases keep the version they were created with.
 
 | Area | Purpose |
 | --- | --- |
 | **Designer** | Author, rehearse (Try), review, publish, activate |
 | **Workspace (Live)** | Officer day-to-day work on activated processes |
+| **Workspace (Try)** | Optional author rehearsal for a Workload Type (not for officers) |
+| **Dashboard** | Supervisor view of Live pressure; drill-down into Workspace |
 
 ---
 
@@ -124,7 +126,7 @@ In Workspace they appear under one **Workload Type** display name (for example I
 | **Workflow** | Process map | Stages, assignment, transition rules |
 | **Actions** | Buttons | Complete, Save draft, Release, … |
 | **Queues** | Work lists | Filtered lists officers open |
-| **SLAs** | Clocks | Optional timing targets |
+| **SLAs** | Clocks | Optional timing targets (calendar or business-day clocks) |
 | **Search** | Find extras | Extra Find-a-case fields beyond tracking ID / receipt |
 | **Bulk actions** | Do-this-to-many | Multi-select queue operations |
 | **Scheduled actions** | Timers | Holds, nudges, delayed events |
@@ -147,8 +149,8 @@ Separation of duties is intentional. In the demo, you switch **Actor id** on the
 | **Author** | Create draft, edit Form / Workflow / Catalog, save, submit for review | This is you day to day |
 | **Approver** | Review, approve or reject | Must be a **different** Actor id from the author who submitted |
 | **Publisher** | Publish, activate / deactivate, retire | Different again from approver when the product requires it |
-| **Officer** | Works in Workspace **Live** only | No Try, no Designer editing |
-| **Supervisor** | May reassign cases in Workspace when allowed | Operational, not authoring |
+| **Officer** | Works in Workspace **Live** only | No Try for daily duty, no Designer editing |
+| **Supervisor** | Dashboard; may reassign cases in Workspace when allowed | Operational, not authoring |
 
 ### Why the product blocks same-person approve
 
@@ -162,7 +164,7 @@ Lifecycle actions often accept a **Comment**. Use short, useful notes (“Ready 
 
 ## 4. Tour of Designer
 
-Open **Designer** from the navy product header.
+Open **Designer** from the product header (or **Jump to…**).
 
 ### Top of Designer: open / create a release
 
@@ -176,8 +178,22 @@ Before the nav tabs matter, you need an open draft.
 | Definition key / Display name / Entity type / Version | Identity of what you are editing |
 | **Clone from** | Copy forms, workflow, and catalog from another release into a new draft |
 | Forms picker / New form / Duplicate / Delete form | Manage multiple forms on one draft |
+| Save status | Shows **Unsaved changes** or **Saved · just now** while you edit |
 
-Help text under these fields explains entity type and clone behavior. Read it the first time — it catches common mistakes (for example Workspace Try using the newest DRAFT).
+Help text under these fields explains entity type and clone behavior. Read it the first time — it catches common mistakes (for example Try using the newest DRAFT).
+
+### Dirty leave guard and autosave
+
+Designer protects your draft:
+
+| Behavior | What it means for you |
+| --- | --- |
+| **Autosave** | Form and Workflow drafts quietly save after a short pause (~2.5 seconds) while you work |
+| **Unsaved changes** status | Something is still dirty — wait for autosave or save explicitly before Try / Lifecycle |
+| **Leave warning** | Leaving Designer, switching release, or using Jump to… while dirty asks you to confirm |
+| **Browser close warning** | Closing the tab with unsaved work prompts the browser leave dialog |
+
+Do not rely on autosave alone before **Try** or **Submit** — glance at the status line and save if anything still says unsaved.
 
 ### Designer nav (middle bar)
 
@@ -197,7 +213,7 @@ Help text under these fields explains entity type and clone behavior. Read it th
 
 Designer **Try** uses what you have **saved**. Unsaved canvas edits are not what Try runs. After Form, Workflow, or Catalog changes:
 
-1. Save the dirty pieces.
+1. Confirm status is saved (or click Save).
 2. Then open Try.
 3. If Try looks “old,” you almost always forgot to save.
 
@@ -299,6 +315,7 @@ Actions are the named buttons officers press.
 2. A stable **key** (internal) — for example `COMPLETE`.
 3. The correct **type**.
 4. For transition actions, connection to the right **transition set** / rules (wired fully in Workflow).
+5. Optional **require assignment to current user** — when set, Complete fails unless the case is assigned to the officer who clicks it.
 
 **Newbie tip:** Name labels the way officers speak (“Complete”, not `TRANSITION_OK`). Keep keys SCREAMING_SNAKE_CASE.
 
@@ -313,8 +330,8 @@ For each queue, you typically set:
 | **Display name** | What officers see (“Ready for Data Entry”) |
 | **Key** | Stable id Workflow references |
 | **Eligibility** | Which cases belong here (usually “current stage equals …”) |
-| **Columns** | Table columns in the list |
-| **Filters** | Optional narrowing (for example assignment status) |
+| **Columns** | Table columns in the list (including SLA when configured) |
+| **Filters** | Optional narrowing (for example assignment status) — officers see these as filter chips |
 | **Projected form fields** | Map form data onto extra columns (names, receipts, …) |
 
 #### Projected fields (blank column trap)
@@ -345,7 +362,16 @@ Search catalog fields feed Workspace **Find a case** beyond tracking ID and rece
 
 ### 7.5 SLAs
 
-Optional timing / service-level configuration attached to stages for later operational views. Safe to skip on your first process.
+Optional timing / service-level clocks on stages. Officers and Dashboard may show **On track**, **Warning**, **Past SLA**, or **Paused**.
+
+| Setting | Newbie guidance |
+| --- | --- |
+| **Calendar** clock | Counts wall-clock time |
+| **Business** clock | Counts Mon–Fri (UTC) business hours in the current product |
+| Thresholds | When Warning vs Breached appear |
+| Pause when | Optional stages where the clock should pause |
+
+Safe to skip on your first process. When you add SLAs, Try a case long enough to see the badge language officers will see.
 
 ### Catalog save habit
 
@@ -361,12 +387,13 @@ Open **Form**. A form is one screen (or page of fields) for a stage: labels, inp
 
 1. Open **Form**.
 2. Pick which form you are editing.
-3. Confirm **Form title**, **formKey**, and **dataPath** (where data lives on the case).
+3. Confirm **Form title**, **formKey**, and **dataPath** (where data lives on the case) under **Identity** (collapsed by default — expand it when you need those fields).
 4. Add fields from the **palette** (Text, Date, Dropdown, A-Number, …).
 5. Group fields into **sections**.
 6. Select a field to edit **Properties** (label, required, help text, validation).
-7. Add **behaviors** if fields should show/hide or become required based on other values.
-8. **Save draft**.
+7. Open **Advanced** on a field only when you need width, classification, Fill from, Display from, or extra validation — Advanced starts **collapsed**.
+8. Add **behaviors** if fields should show/hide or become required based on other values.
+9. Confirm save status (or click Save).
 
 ### 8.2 Palette and canvas
 
@@ -398,8 +425,9 @@ Typical section settings:
 | **Key / path** | Stable; do not rename casually after queues project it |
 | **Required** | Only if the business truly needs it at this stage |
 | **Read-only** | For values officers should see but not change |
-| **Help text** | Short hint under the field |
+| **Help text** | Short hint under the field (often under Advanced) |
 | **Validation** | Match the data type (dates, numbers, A-Number patterns) |
+| **Classification + Splunk policy** | Required for PII / SENSITIVE fields |
 
 ### 8.5 Accessibility (do not skip)
 
@@ -421,6 +449,16 @@ Workload forms do not use “create child cases” the same way. Put spawn logic
 ### 8.8 Preview and JSON views
 
 Form designer often offers **Edit**, **Preview**, **UI JSON**, and **Form schema** modes. Use Preview to sanity-check labels. Use JSON views only when you need precision — prefer the visual canvas as a newbie.
+
+### 8.9 What officers experience on validation errors
+
+When officers (or you in Try) Complete with missing required fields:
+
+- The case form shows an error summary with links to each field
+- Invalid fields are highlighted
+- Focus moves to the first problem field inside the case pane
+
+Design required flags carefully — every required field becomes a Complete blocker for the desk.
 
 ---
 
@@ -447,16 +485,17 @@ For each stage you typically set:
 | **Actions** | Which buttons are allowed (Complete, Save, …) |
 | Assignment rules | Must assign before complete? Allow release? Allow reassign? |
 | Terminal flag | Mark final stages as **terminal** (Completed) |
+| SLA (optional) | Link a Catalog SLA clock for timing badges |
 
 #### Assignment rules (think about the officer desk)
 
 | Rule idea | Officer impact |
 | --- | --- |
-| Must assign before complete | Prevents anonymous Completes |
+| Must assign before complete | Prevents anonymous Completes; officer’s **Signed in as** must match **Assigned to** exactly |
 | Allow release | Officers can return work to the pool |
 | Allow reassign | Supervisors can hand work to someone else |
 
-Match these to real desk policy. Too loose → collisions and unclear ownership. Too tight → officers get stuck.
+Match these to real desk policy. Too loose → collisions and unclear ownership. Too tight → officers get stuck. Train officers that Assign is disabled once *anyone* owns the case — they must Reassign or Release, not re-click Assign.
 
 ### 9.2 Transitions
 
@@ -473,7 +512,7 @@ Good practice:
 
 - Add stages, then arrange them so the map is readable.
 - Wire forms/queues/actions **only** to keys that already exist.
-- Save often — large maps are painful to redo after a browser refresh.
+- Save often — large maps are painful to redo after a browser refresh (autosave helps, but confirm status before Try).
 
 ### 9.4 Transition sets and Catalog actions
 
@@ -487,22 +526,25 @@ Remember: Catalog defines the **button**; Workflow defines **when it appears** a
 
 **Try** lets **you** rehearse **this one open draft** before officers ever see it.
 
-Officers will not use Try. After you **Activate**, they work only in **Workspace Live**.
+Officers will not use Try for daily work. After you **Activate**, they work only in **Workspace Live**.
 
 #### Steps
 
-1. Save Form, Workflow, and Catalog.
+1. Save Form, Workflow, and Catalog (confirm save status).
 2. Open **Try**.
-3. Use **New work arrives** (or the queue list in the Try panel).
-4. Assign, fill, Complete — same kinds of buttons officers will use in Live.
-5. Confirm the case lands in the next queue / Completed as expected.
-6. Fix issues in Form/Workflow/Catalog, save, and Try again.
+3. Set **Signed in as** to a stable test officer id (same idea as Workspace).
+4. Use **New work arrives** (or the queue list in the Try panel).
+5. Assign, fill, Complete — same kinds of buttons officers will use in Live.
+6. Confirm the case lands in the next queue / Completed as expected.
+7. If Complete fails validation, use the highlighted fields and error links (same UX as Live Workspace).
+8. Fix issues in Form/Workflow/Catalog, save, and Try again.
 
 #### Notes
 
 - New intake in Try opens a temporary case; it is saved when you Assign / Complete (not when you only open and leave) — same draft behavior officers see for New mail.
 - Designer Try is single-definition practice for the open release.
 - If Workspace still has a Try toggle in your environment, that is also for authors rehearsing a Workload Type — **not for officers**.
+- Assignment must match **Signed in as** exactly when the stage requires assignment — the same trap officers hit in Live.
 
 ### 10.2 Simulate
 
@@ -546,6 +588,8 @@ Open **Lifecycle** on the draft. This is how a recipe becomes what officers use.
 | **Deactivate** | Stop using this as Live | Deactivating with no replacement activated |
 | **Retire** | Archive after deactivate | Retiring something still needed for history |
 
+API errors in Lifecycle and other Designer panes keep structured detail when the server sends field references — read the banner carefully before retrying.
+
 ### 11.3 Actor id discipline
 
 On Lifecycle:
@@ -567,11 +611,11 @@ Import does **not** skip Activate. A published import still needs Activate when 
 
 ### 11.5 What Activate means for officers
 
-- Workspace **Live** shows this process — that is all officers use.
+- Workspace **Live** shows this process — that is all officers use for daily work.
 - Your Try / rehearsal cases stay out of Live.
 - On activate/publish paths, Live for that release is prepared so officers are not flooded with old rehearsal items.
 
-After Activate, open Workspace → Live yourself and walk one test case before you tell the desk it is ready.
+After Activate, open Workspace → Live yourself and walk one test case before you tell the desk it is ready. Share the [Officer Workspace user guide](./officer-workspace-user-guide.md) so the desk knows Find, Assign, and Complete behavior.
 
 ---
 
@@ -651,12 +695,14 @@ One typo = blank columns, missing buttons, or Validate failures.
 
 | Problem | Likely cause | What to try |
 | --- | --- | --- |
-| Try does not show my latest edits | Not saved | Save Form / Workflow / Catalog, then Try again |
+| Try does not show my latest edits | Not saved | Wait for autosave / Save Form / Workflow / Catalog, then Try again |
+| Leave / Jump to… blocked | Dirty draft | Save or confirm discard when prompted |
 | Validate fails: missing form/queue/action | Built workflow before Catalog/Form pieces | Create the missing key, then re-link |
 | Cannot approve / publish | Same Actor id as previous step | Change Lifecycle Actor id |
 | Officers see nothing in Live | Not activated, or wrong workload type | Activate; confirm Workspace → Live |
 | Queue column empty (for example names) | Projected path ≠ form field path | Fix Catalog projected fields to match the form |
-| Complete fails “required” | Required fields empty or wrong types | Fill them in Try; check date/number formats; reconsider required flags |
+| Complete fails “required” | Required fields empty or wrong types | Fill them in Try; use field error links; reconsider required flags |
+| Complete fails “assign to yourself” | Signed in as ≠ Assigned to | Match ids exactly; Reassign if needed |
 | Complete leaves case stuck | No matching transition / no default | Fix Workflow transitions; Simulate |
 | Someone else changed the draft | Concurrent edit conflict | Reload the draft and re-apply carefully |
 | Delete draft disabled | Not a disposable DRAFT | Use Lifecycle paths for published releases |
@@ -676,7 +722,7 @@ When an error shows a **reference id**, give that to support. Do not paste A-Num
 3. [ ] Forms saved with clear labels and required fields intentional  
 4. [ ] Workflow stages linked to forms, queues, actions  
 5. [ ] Default transition targets set; branches Simulated  
-6. [ ] Designer Try: assign → fill → complete works  
+6. [ ] Designer Try: assign → fill → complete works (validation errors jump to fields)  
 7. [ ] Validate clean (including accessibility)  
 8. [ ] Submit → Approve (other actor) → Publish → **Activate**  
 9. [ ] Workspace **Live**: queues visible; New mail / Find a case smoke-tested  
@@ -698,7 +744,7 @@ When an error shows a **reference id**, give that to support. Do not paste A-Num
 3. [ ] One test case: New mail / assign / complete  
 4. [ ] Find a case by tracking ID  
 5. [ ] Confirm author Try rehearsal is not polluting Live counts  
-6. [ ] Spot-check projected columns (names, receipts)  
+6. [ ] Spot-check projected columns (names, receipts) and SLA badges if configured  
 
 ---
 
@@ -714,10 +760,10 @@ Publish and Activate a minimal linear process: one queue stage → Complete → 
 
 1. **Clone or create** a WORKLOAD draft `1.0.0` with a clear definition key.  
 2. **Catalog:** create `SAVE_DRAFT` (save) and `COMPLETE` (transition) actions; create `READY_FOR_DATA_ENTRY` queue with eligibility on that stage; add basic columns.  
-3. **Form:** one section, a few fields (for example receipt number + a text field). Save.  
-4. **Workflow:** stages Ready for Data Entry (form + queue + actions) and Completed (terminal). Default transition from Complete → Completed. Save.  
+3. **Form:** one section, a few fields (for example receipt number + a text field). Save (confirm status).  
+4. **Workflow:** stages Ready for Data Entry (form + queue + actions; require assign if your desk needs it) and Completed (terminal). Default transition from Complete → Completed. Save.  
 5. **Validate** until clean.  
-6. **Try:** New work arrives → Assign → fill → Complete → confirm Completed.  
+6. **Try:** New work arrives → set Signed in as → Assign → fill → Complete → confirm Completed.  
 7. **Lifecycle:** Submit / Approve / Publish / Activate with proper Actor ids.  
 8. **Workspace Live:** pick the Workload Type → open the queue → run one case → Find by tracking ID.  
 9. Write down every key you used in your notepad for the next process.
@@ -731,11 +777,12 @@ If anything fails, fix that layer (Catalog vs Form vs Workflow vs Lifecycle) bef
 Authors often forget to “put on the officer hat.” After Activate, an officer should be able to:
 
 1. Open **Workspace** → **Live**.  
-2. Pick your **Workload Type**.  
-3. See mail and/or workload **queues** with clear names.  
-4. Open a queue, **Assign**, fill **your** labels (not internal keys), **Complete**.  
-5. Use **Find a case** with the tracking ID on a label.  
-6. Open **User guide** if they are new — that guide assumes your queues and buttons make sense in plain language.
+2. Pick your **Workload Type** (remembered from last visit when they return).  
+3. See mail and/or workload **queues** with clear names and counts.  
+4. Open a queue, use filter chips if you configured filters, **Assign**, fill **your** labels (not internal keys), **Complete**.  
+5. See validation errors jump to the first bad field when something is missing.  
+6. Use **Find a case** with the tracking ID on a label.  
+7. Open **User guide** if they are new — that guide assumes your queues and buttons make sense in plain language.
 
 If officers need tribal knowledge to understand a button named `TRANSITION_2`, rename the **label** in Catalog before you call the process done.
 

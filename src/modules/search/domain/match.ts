@@ -1,3 +1,4 @@
+import { fieldUsedInSearch } from '../../configuration/domain/indexed-fields.js';
 import type { SearchFieldDefinition } from '../../configuration/domain/types.js';
 import type { QueueProjectionRecord } from '../../queue/domain/types.js';
 import { MISSING, resolveJsonPath } from '../../../rules/json-path-resolver.js';
@@ -10,7 +11,8 @@ const DEFAULT_FIELDS: SearchFieldDefinition[] = [
 ];
 
 export function searchableFields(configured: SearchFieldDefinition[] | undefined): SearchFieldDefinition[] {
-  const fields = configured && configured.length > 0 ? configured : DEFAULT_FIELDS;
+  const configuredForSearch = (configured ?? []).filter(fieldUsedInSearch);
+  const fields = configuredForSearch.length > 0 ? configuredForSearch : DEFAULT_FIELDS;
   const keys = new Set(fields.map((field) => field.fieldKey));
   return [
     ...fields,
@@ -206,7 +208,7 @@ export function normalizeMatchMode(match: string): string {
   return match;
 }
 
-function matches(value: string, needle: string, match: string): boolean {
+export function matches(value: string, needle: string, match: string): boolean {
   const left = value.toLowerCase();
   const right = needle.toLowerCase();
   const mode = normalizeMatchMode(match);
@@ -217,4 +219,21 @@ function matches(value: string, needle: string, match: string): boolean {
     return left.includes(right);
   }
   return left.startsWith(right);
+}
+
+/** Dashboard dimension match against projected JSON (and known columns). */
+export function matchDimensionValue(
+  row: QueueProjectionRecord,
+  field: SearchFieldDefinition,
+  needle: string
+): boolean {
+  const trimmed = needle.trim();
+  if (!trimmed) {
+    return true;
+  }
+  const value = fieldValue(row, field, null);
+  if (!value) {
+    return false;
+  }
+  return matches(value, trimmed, field.match);
 }

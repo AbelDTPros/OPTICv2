@@ -55,15 +55,15 @@ describe('CatalogDesigner', () => {
     expect(onActionsChange).toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'SLAs' }));
     expect(screen.getByLabelText('Target hours')).toHaveValue(24);
-    await user.click(screen.getByRole('button', { name: 'Search' }));
-    expect(screen.getByRole('heading', { name: 'Search' })).toBeInTheDocument();
-    expect(screen.getByText('Find a case filters')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Indexed fields' }));
+    expect(screen.getByRole('heading', { name: 'Indexed fields' })).toBeInTheDocument();
+    expect(screen.getByText('Built-in Find a case fields')).toBeInTheDocument();
     expect(screen.getByLabelText('Tracking ID match')).toBeInTheDocument();
     expect(screen.getByLabelText('Receipt number match')).toBeInTheDocument();
     expect(screen.getByLabelText('Stage match')).toBeInTheDocument();
     expect(screen.getByLabelText('Assignee match')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Add Find a case filter' })).toBeInTheDocument();
-    expect(screen.queryByLabelText(/Find a case input/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add indexed field' })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Form field$/)).not.toBeInTheDocument();
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -103,9 +103,9 @@ describe('CatalogDesigner', () => {
       );
     }
     render(<Harness />);
-    await user.click(screen.getByRole('button', { name: 'Search' }));
-    expect(screen.getByText(/Only the four built-in filters/)).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Add Find a case filter' }));
+    await user.click(screen.getByRole('button', { name: 'Indexed fields' }));
+    expect(screen.getByText(/No indexed form fields yet/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Add indexed field' }));
     expect(onSearchChange).toHaveBeenCalled();
     const next = onSearchChange.mock.calls.at(-1)?.[0] as {
       fields: Array<{ fieldKey: string; path: string; source: string }>;
@@ -127,7 +127,9 @@ describe('CatalogDesigner', () => {
         (queue.projectedFields ?? []).some((field) => field.path === next.fields[0]?.path)
       )
     ).toBe(true);
-    expect(screen.getByLabelText('Find a case input')).toBeInTheDocument();
+    expect(screen.getByLabelText('Form field')).toBeInTheDocument();
+    expect(screen.getByLabelText('Find a case')).toBeInTheDocument();
+    expect(screen.getByLabelText('Dashboard')).toBeInTheDocument();
   });
 
   it('edits queue eligibility predicates', async () => {

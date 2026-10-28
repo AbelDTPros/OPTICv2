@@ -294,9 +294,7 @@ describe('DesignerWorkspace', () => {
         entityType: 'WORKLOAD',
         definitionKey: 'I_407',
         version: '0.1.0',
-        entityTrackingId: expect.stringMatching(
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-        )
+        entityTrackingId: expect.stringMatching(/^W-[0-9A-HJKMNP-TV-Z]{10}$/i)
       })
     );
     expect(workflowApi.assignWorkflow).toHaveBeenCalled();
@@ -844,8 +842,12 @@ describe('DesignerWorkspace', () => {
       checksum: 'a'.repeat(64)
     });
     const file = new File([packageJson], 'I_90-1.1.0.optic-package.json', { type: 'application/json' });
-    const input = screen.getByLabelText('Import package file');
+    const input = screen.getByLabelText('Choose package file');
     fireEvent.change(input, { target: { files: [file] } });
+    expect(configApi.importReleasePackage).not.toHaveBeenCalled();
+    expect(await screen.findByText(/Selected:/)).toBeInTheDocument();
+    expect(screen.getByText('I_90-1.1.0.optic-package.json')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Import package' }));
     expect(await screen.findByText(/Imported I_90 1.1.0 as DRAFT/)).toBeInTheDocument();
     expect(configApi.importReleasePackage).toHaveBeenCalledWith(
       'I_90',

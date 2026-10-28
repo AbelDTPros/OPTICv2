@@ -10,7 +10,9 @@ import type {
   TransitionRule,
   WorkflowDefinition
 } from '../../../../src/modules/configuration/domain/types.js';
-import { DesignerErrorBody, ErrorSummary } from '../ui/ErrorSummary.js';
+import type { DisplayError } from '../api/apply-api-error.js';
+import { CaughtErrorBanner } from '../ui/CaughtErrorBanner.js';
+import { ErrorSummary } from '../ui/ErrorSummary.js';
 import { ButtonLabel } from '../ui/Icon.js';
 import { emptyPredicate, RuleExpressionEditor, summarizeRuleExpression } from './RuleExpressionEditor.js';
 import { SaveDraftButton } from './SaveDraftButton.js';
@@ -92,7 +94,7 @@ export interface WorkflowDesignerProps {
   forms?: Record<string, StageFormDefinition>;
   scheduledActions?: Record<string, ScheduledActionDefinition>;
   readOnly?: boolean;
-  errorSummary?: string;
+  errorSummary?: DisplayError;
   onChange: (workflow: WorkflowDefinition) => void;
   onScheduledActionsChange?: (scheduledActions: Record<string, ScheduledActionDefinition>) => void;
   onDetachTransitionSet?: (removedKey: string, replacementKey?: string) => void;
@@ -543,20 +545,14 @@ export function WorkflowDesigner({
         </div>
       </header>
 
-      {errorSummary || issues.length > 0 ? (
-        <ErrorSummary
-          role={errorSummary ? 'alert' : 'status'}
-          focus={Boolean(errorSummary)}
-          heading={issues.length > 0 ? 'Validation' : undefined}
-        >
-          {errorSummary ? <DesignerErrorBody message={errorSummary} /> : null}
-          {issues.length > 0 ? (
-            <ul>
-              {issues.map((issue) => (
-                <li key={issue.path + issue.message}>{issue.message}</li>
-              ))}
-            </ul>
-          ) : null}
+      <CaughtErrorBanner error={errorSummary} />
+      {issues.length > 0 ? (
+        <ErrorSummary role="status" focus={!errorSummary} heading="Validation">
+          <ul>
+            {issues.map((issue) => (
+              <li key={issue.path + issue.message}>{issue.message}</li>
+            ))}
+          </ul>
         </ErrorSummary>
       ) : null}
 

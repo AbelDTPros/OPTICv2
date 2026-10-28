@@ -1,4 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { ErrorFieldLink } from '../accessibility/ErrorFieldLink.js';
+import { focusElement } from '../accessibility/focus-field.js';
 import { ApiError } from '../api/api-error.js';
 import { ErrorHeading } from './Icon.js';
 
@@ -18,13 +20,21 @@ export function ErrorSummary({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (focus) {
-      ref.current?.focus();
+    if (!focus) {
+      return;
     }
-  }, [focus]);
+    ref.current?.focus({ preventScroll: true });
+    const firstLink = ref.current?.querySelector<HTMLAnchorElement>('a[href^="#"]');
+    const targetId = firstLink?.getAttribute('href')?.slice(1);
+    if (targetId) {
+      window.setTimeout(() => {
+        focusElement(document.getElementById(targetId));
+      }, 120);
+    }
+  }, [focus, children, error]);
 
   return (
-    <div className="optic-error-summary" role={role} tabIndex={-1} ref={ref}>
+    <div className="optic-error-summary" role={role} tabIndex={-1} ref={ref} aria-live={role === 'alert' ? 'assertive' : 'polite'}>
       <ErrorHeading>{heading}</ErrorHeading>
       {error ? <ApiErrorBody error={error} /> : children}
     </div>
@@ -39,7 +49,11 @@ export function ApiErrorBody({ error }: { error: ApiError }) {
         <ul>
           {error.details.map((detail, index) => (
             <li key={`${detail.inputId ?? detail.path ?? detail.field ?? index}-${detail.message}`}>
-              {detail.inputId ? <a href={`#${detail.inputId}`}>{detail.message}</a> : detail.message}
+              {detail.inputId ? (
+                <ErrorFieldLink inputId={detail.inputId}>{detail.message}</ErrorFieldLink>
+              ) : (
+                detail.message
+              )}
             </li>
           ))}
         </ul>

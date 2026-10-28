@@ -191,7 +191,9 @@ export const searchBody = draftEnvelope(
         source: z.enum(['SYSTEM', 'BUSINESS_DATA']),
         path: z.string().min(1),
         match: z.string().min(1),
-        pii: z.boolean()
+        pii: z.boolean(),
+        useInSearch: z.boolean().optional(),
+        useInDashboard: z.boolean().optional()
       })
     )
   })

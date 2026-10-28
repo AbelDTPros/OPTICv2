@@ -1,11 +1,18 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ApiError } from '../api/api-error.js';
 import { demoDesignerForm, demoDesignerQueue, demoDesignerWorkflow } from '../designers/demo-draft.js';
 import * as configApi from '../designers/config-api.js';
 import * as workflowApi from '../designers/workflow-api.js';
 import * as opticApi from '../queues/optic-api.js';
-import { OFFICER_ACTOR_ID, setCurrentOfficerId } from '../actors/demo-officers.js';
+import {
+  getCurrentOfficerId,
+  OFFICER_ACTOR_ID,
+  setCurrentOfficerId
+} from '../actors/demo-officers.js';
+import { ALL_FEATURES_ENABLED } from '../features/catalog.js';
+import * as FeatureFlags from '../features/FeatureFlagsContext.js';
 import * as searchApi from '../search/search-api.js';
 import { OfficerWorkspace } from './OfficerWorkspace.js';
 
@@ -188,6 +195,10 @@ describe('OfficerWorkspace', () => {
     expect(combobox).toHaveDisplayValue('I-90');
     expect(screen.getByRole('heading', { name: 'Workload queues' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Mail item queues' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Clear workload type' }));
+    expect(combobox).toHaveDisplayValue('');
+    expect(screen.queryByRole('heading', { name: 'Workload queues' })).not.toBeInTheDocument();
   });
 
   it('lets the officer type the working-as name', async () => {
@@ -199,6 +210,25 @@ describe('OfficerWorkspace', () => {
     await user.clear(field);
     await user.type(field, 'Jordan Lee{Enter}');
     expect(screen.getByLabelText('Signed in as')).toHaveDisplayValue('Jordan Lee');
+  });
+
+  it('pins the demo officer when Signed in as override is off', async () => {
+    setCurrentOfficerId('Jordan Lee');
+    vi.spyOn(FeatureFlags, 'useFeatureFlags').mockReturnValue({
+      flags: { ...ALL_FEATURES_ENABLED, 'ui.workspace.actor_override': false },
+      admin: { uiEnabled: false, apiEnabled: false },
+      loading: false,
+      refresh: async () => undefined,
+      isEnabled: (key) => key !== 'ui.workspace.actor_override'
+    });
+    stubCatalog();
+    render(<OfficerWorkspace />);
+    await screen.findByRole('heading', { name: 'Officer workspace' });
+    expect(screen.queryByRole('textbox', { name: 'Signed in as' })).not.toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Signed in as' })).toHaveTextContent(
+      'officer@example.gov'
+    );
+    expect(getCurrentOfficerId()).toBe(OFFICER_ACTOR_ID);
   });
 
   it('opens a draft mail case without persisting until assign', async () => {
@@ -249,7 +279,7 @@ describe('OfficerWorkspace', () => {
     expect(create).not.toHaveBeenCalled();
     expect(await screen.findByRole('heading', { name: 'Ready for Data Entry' })).toBeInTheDocument();
     expect(screen.getByRole('status', { name: 'Case status' })).toHaveTextContent('DRAFT');
-    await user.click(screen.getByRole('button', { name: 'Back to queues' }));
+    await user.click(screen.getByRole('button', { name: 'Close case' }));
     expect(create).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'New mail arrives' }));
     await user.click(await screen.findByRole('button', { name: 'Assign to me' }));
@@ -261,6 +291,73 @@ describe('OfficerWorkspace', () => {
       })
     );
     expect(workflowApi.assignWorkflow).toHaveBeenCalled();
+  });
+
+  it('does not recreate the draft after Complete fails validation', async () => {
+    const user = userEvent.setup();
+    stubCatalog();
+    const persisted = {
+      trackingId: 'M-RETRY1',
+      entityType: 'MAIL',
+      workflowInstanceId: 9,
+      status: 'ACTIVE',
+      definition: { definitionKey: 'I_407_MAILITEM', version: '0.1.0', releaseId: '1' },
+      workflow: {
+        currentStageKey: 'READY_FOR_DATA_ENTRY',
+        currentStageLabel: 'Ready for Data Entry',
+        enteredStageAt: '2026-09-04T00:00:00.000Z',
+        assignedTo: null,
+        rowVersion: 0,
+        openVisitNumber: 1
+      },
+      businessData: {},
+      allowedActions: [{ actionKey: 'COMPLETE', label: 'Complete' }],
+      stageForm: {
+        formKey: demoDesignerForm.formKey,
+        title: demoDesignerForm.title,
+        dataPath: demoDesignerForm.dataPath,
+        schema: demoDesignerForm.schema,
+        ui: demoDesignerForm
+      },
+      visits: [],
+      forms: { [demoDesignerForm.formKey]: demoDesignerForm },
+      workflowDefinition: demoDesignerWorkflow
+    };
+    const create = vi.spyOn(workflowApi, 'createWorkflowInstance').mockResolvedValue(persisted);
+    const execute = vi
+      .spyOn(workflowApi, 'executeWorkflowAction')
+      .mockRejectedValueOnce(
+        new ApiError({
+          summary: 'Required fields are missing.',
+          errorCode: 'OPTIC-WF-40050',
+          details: [{ field: 'aNumber', message: 'Required', inputId: 'field-aNumber' }]
+        })
+      )
+      .mockResolvedValueOnce({
+        ...persisted,
+        workflow: {
+          ...persisted.workflow,
+          currentStageKey: 'COMPLETED',
+          currentStageLabel: 'Completed',
+          rowVersion: 1
+        },
+        allowedActions: []
+      });
+
+    render(<OfficerWorkspace />);
+    await enterTryMode(user);
+    await selectWorkloadType(user);
+    await user.click(screen.getByRole('button', { name: 'New mail arrives' }));
+    expect(await screen.findByRole('heading', { name: 'Ready for Data Entry' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'COMPLETE' }));
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText('Required')).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: 'Case status' })).not.toHaveTextContent('DRAFT');
+
+    await user.click(await screen.findByRole('button', { name: 'Complete' }));
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(execute).toHaveBeenCalledTimes(2);
   });
 
   it('opens a scanned tracking label from Find a case', async () => {
@@ -312,7 +409,7 @@ describe('OfficerWorkspace', () => {
     await user.click(screen.getByRole('button', { name: 'Search' }));
     expect(searchApi.findCases).toHaveBeenCalled();
     expect(await screen.findByRole('article', { name: 'MAIL label MAIL-ENVELOPE' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Find a case' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Back to queues' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Workload Type' })).toBeInTheDocument();
   });
 
@@ -412,10 +509,10 @@ describe('OfficerWorkspace', () => {
     await selectWorkloadType(user);
     expect(screen.getByRole('combobox', { name: 'Workload Type' })).toHaveDisplayValue('I-407');
     const mailNav = screen.getByRole('navigation', { name: 'Mail item queues' });
-    expect(within(mailNav).getByRole('button', { name: /Assigned to Me/ })).toHaveTextContent('1');
-    expect(within(mailNav).getByRole('button', { name: /All Items/ })).toHaveTextContent('3');
-    expect(within(mailNav).getByRole('button', { name: /^Completed/ })).toHaveTextContent('0');
-    expect(within(mailNav).getByRole('button', { name: /New Mail Item/ })).toHaveTextContent('3');
+    expect(within(mailNav).getByRole('button', { name: /^Assigned to Me/, pressed: false })).toHaveTextContent('1');
+    expect(within(mailNav).getByRole('button', { name: /^All Items/, pressed: false })).toHaveTextContent('3');
+    expect(within(mailNav).getByRole('button', { name: /^Completed/, pressed: false })).toHaveTextContent('0');
+    expect(within(mailNav).getByRole('button', { name: /^New Mail Item/ })).toHaveTextContent('3');
   });
 
   it('orders Live workload queues by workflow stage order, not alphabetically', async () => {
@@ -555,6 +652,7 @@ describe('OfficerWorkspace', () => {
     const workloadNav = await screen.findByRole('navigation', { name: 'Workload queues' });
     const labels = within(workloadNav)
       .getAllByRole('button')
+      .filter((button) => button.hasAttribute('aria-pressed'))
       .map((button) => button.textContent?.replace(/\d+$/, '').trim());
     expect(labels).toEqual(['Z First', 'A Second', 'Completed', 'Assigned to Me', 'All Items']);
   });

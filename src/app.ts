@@ -23,12 +23,15 @@ import { createQueueRouter } from './modules/queue/api/queue.routes.js';
 import type { QueueService } from './modules/queue/service/queue.service.js';
 import { createSearchRouter } from './modules/search/api/search.routes.js';
 import type { SearchService } from './modules/search/service/search.service.js';
+import { createSupervisorRouter } from './modules/supervisor/api/supervisor.routes.js';
+import type { SupervisorDashboardService } from './modules/supervisor/service/supervisor-dashboard.service.js';
 import { createTrackingRouter } from './modules/tracking/api/tracking.routes.js';
 import type { TrackingService } from './modules/tracking/service/tracking.service.js';
 import { createWorkloadAliasRouter, createWorkflowRouter } from './modules/workflow/api/workflow.routes.js';
 import type { WorkflowInstanceService } from './modules/workflow/service/workflow-instance.service.js';
 import type { IdempotencyRepository } from './platform/idempotency/idempotency.repository.js';
 import type { OutboxRepository } from './platform/outbox/outbox.repository.js';
+import { requireFeatureFlag } from './middleware/feature-flag.js';
 
 export function createApp(
   config: AppConfig,
@@ -42,7 +45,8 @@ export function createApp(
   search?: SearchService,
   tracking?: TrackingService,
   features?: FeatureFlagService,
-  adminAudit?: AdminAuditService
+  adminAudit?: AdminAuditService,
+  supervisor?: SupervisorDashboardService
 ): Express {
   const app = express();
   app.disable('x-powered-by');
@@ -71,6 +75,14 @@ export function createApp(
   }
   if (tracking) {
     app.use('/api/v1/tracking-ids', createTrackingRouter(tracking));
+  }
+  if (supervisor) {
+    const router = createSupervisorRouter(supervisor);
+    if (features) {
+      app.use('/api/v1/supervisor', requireFeatureFlag(features, 'api.supervisor_dashboard'), router);
+    } else {
+      app.use('/api/v1/supervisor', router);
+    }
   }
   app.use(notFoundMiddleware);
   app.use(errorHandlerMiddleware(outbox));

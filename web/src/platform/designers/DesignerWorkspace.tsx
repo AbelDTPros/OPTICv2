@@ -45,12 +45,17 @@ import {
   type SimulateTransitionResult,
   type ValidateReleaseResult
 } from './config-api.js';
-import { formatApiError } from '../api/api-error.js';
+import { asDisplayError, type DisplayError } from '../api/apply-api-error.js';
+import { CaughtErrorBanner } from '../ui/CaughtErrorBanner.js';
 import { useFeatureFlags } from '../features/FeatureFlagsContext.js';
 import { DESIGNER_USER_GUIDE } from '../guides/guide-sources.js';
 import { UserGuideDialog } from '../guides/UserGuideDialog.js';
+import {
+  APP_NAVIGATE_EVENT,
+  consumeDesignerFocusHint,
+  type DesignerFocusHint
+} from '../navigation/app-navigation.js';
 import { CatalogDesigner, type CatalogKind } from './CatalogDesigner.js';
-import { DesignerErrorBody, ErrorSummary } from '../ui/ErrorSummary.js';
 import { ButtonLabel, StatusPill, type IconName } from '../ui/Icon.js';
 import {
   blankDesignerForm,
@@ -67,7 +72,11 @@ import {
 import { FormDesigner } from './FormDesigner.js';
 import { TryAsOfficerPanel } from './TryAsOfficerPanel.js';
 import { WorkflowDesigner } from './WorkflowDesigner.js';
-import { isDesignerDirty } from './designer-dirty.js';
+import { isDesignerDirty, isFormDirty } from './designer-dirty.js';
+import {
+  confirmLeaveDesigner,
+  setDesignerUnsavedChanges
+} from './designer-leave-guard.js';
 import {
   retargetDisplayFromFormKeys,
   scrubDisplayFromFormKey,
@@ -125,6 +134,21 @@ export function DesignerWorkspace() {
   const [tab, setTab] = useState<
     'workflow' | 'form' | 'schema' | 'catalog' | 'lifecycle' | 'simulate' | 'try' | 'diff'
   >('form');
+  useEffect(() => {
+    const hint = consumeDesignerFocusHint();
+    if (hint?.tab) {
+      setTab(hint.tab);
+    }
+    function onNavigate(event: Event) {
+      const detail = (event as CustomEvent<{ view?: string; designerFocus?: DesignerFocusHint }>).detail;
+      if (detail?.view !== 'designer' || !detail.designerFocus?.tab) {
+        return;
+      }
+      setTab(detail.designerFocus.tab);
+    }
+    window.addEventListener(APP_NAVIGATE_EVENT, onNavigate);
+    return () => window.removeEventListener(APP_NAVIGATE_EVENT, onNavigate);
+  }, []);
 
   useEffect(() => {
     if (tab === 'try' && !tryTabEnabled) {
@@ -161,11 +185,13 @@ export function DesignerWorkspace() {
   const [release, setRelease] = useState<DesignerRelease | undefined>();
   const [rowVersion, setRowVersion] = useState(0);
   const [lifecycleStatus, setLifecycleStatus] = useState('DRAFT');
-  const [errorSummary, setErrorSummary] = useState<string | undefined>();
+  const [errorSummary, setErrorSummary] = useState<DisplayError | undefined>();
   const [status, setStatus] = useState('Editing locally. Open or create a DRAFT to save through the API.');
+  const [lastSavedAt, setLastSavedAt] = useState<number | undefined>();
   const [releasePickerMode, setReleasePickerMode] = useState<'open' | 'clone' | null>(null);
   const [openQuery, setOpenQuery] = useState('');
   const [openFilter, setOpenFilter] = useState<ReleaseCatalogFilter>('ALL');
+  const [releaseEditorOpen, setReleaseEditorOpen] = useState(true);
   const openButtonRef = useRef<HTMLButtonElement>(null);
   const cloneButtonRef = useRef<HTMLButtonElement>(null);
   const openPickerTitleRef = useRef<HTMLHeadingElement>(null);
@@ -173,6 +199,14 @@ export function DesignerWorkspace() {
   const releasePickerOpen = releasePickerMode !== null;
   const form = forms[formKey] ?? blankDesignerForm;
   const readOnly = lifecycleStatus !== 'DRAFT';
+  const releaseIdentity = release ? `${release.definitionKey}@${release.version}` : '';
+  useEffect(() => {
+    setReleaseEditorOpen(!release);
+  }, [releaseIdentity]);
+  const formDirty = useMemo(
+    () => isFormDirty(form, release?.forms?.[form.formKey]),
+    [form, release]
+  );
   const workflowDirty = useMemo(() => {
     if (!release) {
       return true;
@@ -191,6 +225,104 @@ export function DesignerWorkspace() {
     }
     return false;
   }, [actions, release, scheduledActions, workflow]);
+  const catalogDirty = useMemo(() => {
+    if (!release) {
+      return true;
+    }
+    return (
+      isDesignerDirty(actions, release.actions ?? {}) ||
+      isDesignerDirty(queues, release.queues ?? {}) ||
+      isDesignerDirty(slas, release.slas ?? {}) ||
+      isDesignerDirty(search, release.search) ||
+      isDesignerDirty(bulkActions, release.bulkActions ?? {}) ||
+      isDesignerDirty(scheduledActions, release.scheduledActions ?? {})
+    );
+  }, [actions, bulkActions, queues, release, scheduledActions, search, slas]);
+  const hasUnsavedChanges = Boolean(release) && !readOnly && (formDirty || workflowDirty || catalogDirty);
+  useEffect(() => {
+    setDesignerUnsavedChanges(hasUnsavedChanges);
+    return () => setDesignerUnsavedChanges(false);
+  }, [hasUnsavedChanges]);
+  useEffect(() => {
+    if (!hasUnsavedChanges) {
+      return;
+    }
+    function onBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  const autosaveBusyRef = useRef(false);
+  useEffect(() => {
+    if (!release || readOnly || !hasUnsavedChanges || autosaveBusyRef.current) {
+      return;
+    }
+    if (tab !== 'form' && tab !== 'workflow') {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      if (autosaveBusyRef.current) {
+        return;
+      }
+      autosaveBusyRef.current = true;
+      void run(async () => {
+        try {
+          if (tab === 'form' && formDirty) {
+            const withSchema = { ...form, schema: schemaFromForm(form) };
+            let next = await saveFormDraft(definitionKey, version, rowVersion, withSchema);
+            const releaseSchema = releaseSchemaFromForms(
+              { ...forms, [withSchema.formKey]: withSchema },
+              release?.schema
+            );
+            if (releaseSchema) {
+              next = await saveSchemaDraft(definitionKey, version, next.rowVersion, releaseSchema);
+            }
+            applyRelease(next, withSchema.formKey);
+            setStatus(`Autosaved form ${withSchema.formKey}.`);
+          } else if (tab === 'workflow' && workflowDirty) {
+            let next = await saveWorkflowDraft(definitionKey, version, rowVersion, workflow);
+            for (const action of Object.values(actions)) {
+              const saved = release?.actions?.[action.actionKey];
+              if (saved && saved.transitionSetKey !== action.transitionSetKey) {
+                next = await saveActionDraft(definitionKey, version, next.rowVersion, action);
+              }
+            }
+            for (const scheduled of Object.values(scheduledActions)) {
+              const saved = release?.scheduledActions?.[scheduled.scheduledActionKey];
+              if (!saved || JSON.stringify(saved) !== JSON.stringify(scheduled)) {
+                next = await saveScheduledActionDraft(definitionKey, version, next.rowVersion, scheduled);
+              }
+            }
+            applyRelease(next, formKey);
+            setStatus('Autosaved workflow.');
+          }
+        } finally {
+          autosaveBusyRef.current = false;
+        }
+      });
+    }, 2500);
+    return () => window.clearTimeout(timer);
+  }, [
+    actions,
+    definitionKey,
+    form,
+    formDirty,
+    formKey,
+    forms,
+    hasUnsavedChanges,
+    readOnly,
+    release,
+    rowVersion,
+    scheduledActions,
+    tab,
+    version,
+    workflow,
+    workflowDirty
+  ]);
+
   const openCatalogGroups = useMemo(
     () => groupReleaseCatalog(filterReleaseCatalog(cloneChoices, openQuery, openFilter)),
     [cloneChoices, openQuery, openFilter]
@@ -256,12 +388,19 @@ export function DesignerWorkspace() {
   }
 
   async function openCatalogRelease(item: ReleaseCatalogItem) {
+    if (
+      hasUnsavedChanges &&
+      !confirmLeaveDesigner('You have unsaved Designer changes. Open another release without saving?')
+    ) {
+      return;
+    }
     await run(async () => {
       const next = await getRelease(item.definitionKey, item.version);
       setDefinitionKey(item.definitionKey);
       setVersion(item.version);
       setDisplayName(item.displayName);
       applyRelease(next);
+      setLastSavedAt(Date.now());
       setReleasePickerMode(null);
       setOpenQuery('');
       setOpenFilter('ALL');
@@ -343,6 +482,7 @@ export function DesignerWorkspace() {
     }
     setErrorSummary(undefined);
     setEntityType(normalizeEntityType(next.entityType));
+    setLastSavedAt(Date.now());
     setStatus(releaseStatusLine(next));
   }
 
@@ -369,148 +509,220 @@ export function DesignerWorkspace() {
       setErrorSummary(undefined);
       await work();
     } catch (error: unknown) {
-      if (error instanceof DesignerApiError) {
-        setErrorSummary(formatDesignerError(error));
-      } else if (error instanceof Error) {
-        setErrorSummary(error.message);
-      } else {
-        setErrorSummary(DESIGNER_API_UNREACHABLE);
-      }
+      setErrorSummary(caughtDesignerError(error));
     }
   }
 
   return (
     <div className="optic-designer-workspace">
+      <header className="optic-designer-page-intro">
+        <div className="optic-designer-page-intro-copy">
+          <p className="optic-designer-kicker">Authoring</p>
+          <p className="optic-designer-page-title">Designer</p>
+          <p className="optic-help">
+            Build forms, workflow, and catalog for a definition release, then rehearse and promote it to Live.
+          </p>
+        </div>
+        <div className="optic-designer-page-intro-status" aria-label="Release status">
+          <StatusPill>{lifecycleStatus}</StatusPill>
+          {release?.active ? <StatusPill>Live</StatusPill> : null}
+          {release ? (
+            <span className="optic-designer-page-release-id">
+              {definitionKey} · {version}
+            </span>
+          ) : (
+            <span className="optic-designer-page-release-id">No release open</span>
+          )}
+          {release && !readOnly ? (
+            <p
+              className={`optic-designer-save-state${hasUnsavedChanges ? ' is-dirty' : ''}`}
+              role="status"
+              aria-live="polite"
+            >
+              {hasUnsavedChanges
+                ? 'Unsaved changes'
+                : lastSavedAt
+                  ? `Saved · ${formatSavedWhen(lastSavedAt)}`
+                  : 'All changes saved'}
+            </p>
+          ) : null}
+        </div>
+      </header>
+
       <form className="optic-designer-open" onSubmit={(event) => event.preventDefault()}>
         <fieldset className="optic-designer-open-grid">
           <legend>Definition release</legend>
-          <div className="optic-designer-open-header">
-            <p className="optic-help">
-              Open an existing release to edit it, or fill the fields below and create a new draft.
-            </p>
-            <div className="optic-designer-open-action-group" role="group" aria-label="Release actions">
-              <button
-                ref={openButtonRef}
-                type="button"
-                className="optic-button-primary"
-                onClick={() => void openReleasePicker('open')}
-              >
-                <ButtonLabel icon="folder">Open definition</ButtonLabel>
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  run(async () => {
-                    await createDefinition({ definitionKey, displayName, entityType });
-                    applyRelease(await createDraftRelease(definitionKey, version, parseCloneSource(cloneSource)));
-                    setReleasePickerMode(null);
-                    await refreshCloneChoices();
-                  })
-                }
-              >
-                <ButtonLabel icon="draft">Create draft</ButtonLabel>
-              </button>
-              <button
-                type="button"
-                disabled={!release || lifecycleStatus !== 'DRAFT'}
-                onClick={() => {
-                  if (!release || lifecycleStatus !== 'DRAFT') {
-                    return;
-                  }
-                  if (!window.confirm(`Delete draft ${definitionKey} ${version}? This cannot be undone.`)) {
-                    return;
-                  }
-                  void run(async () => {
-                    const result = await deleteDraftRelease(definitionKey, version, rowVersion);
-                    setRelease(undefined);
-                    setRowVersion(0);
-                    setLifecycleStatus('DRAFT');
-                    setReleasePickerMode(null);
-                    await refreshCloneChoices();
-                    setStatus(
-                      result.definitionRemoved
-                        ? `${result.definitionKey} was deleted (no remaining releases). Open another release or Create draft.`
-                        : `${result.definitionKey} ${result.version} was deleted. Open another release or Create draft.`
-                    );
-                  });
-                }}
-              >
-                <ButtonLabel icon="trash">Delete draft</ButtonLabel>
-              </button>
+
+          <section className="optic-designer-open-zone optic-designer-open-zone-hero" aria-label="Release actions">
+            <div className="optic-designer-open-header">
+              <div>
+                <p className="optic-designer-open-section-label">Release</p>
+                <p className="optic-help">
+                  {release && !releaseEditorOpen
+                    ? `${displayName} · ${entityType === 'MAIL' ? 'Mail item' : 'Workload'} · Edit release details when you need a new draft or form.`
+                    : 'Open an existing release to edit it, or fill the fields below and create a new draft.'}
+                </p>
+              </div>
+              <div className="optic-designer-open-action-group" role="group" aria-label="Release actions">
+                <button
+                  ref={openButtonRef}
+                  type="button"
+                  className="optic-button-primary"
+                  onClick={() => void openReleasePicker('open')}
+                >
+                  <ButtonLabel icon="folder">Open definition</ButtonLabel>
+                </button>
+                {release ? (
+                  <button
+                    type="button"
+                    className="optic-button-secondary"
+                    aria-expanded={releaseEditorOpen}
+                    aria-controls="optic-designer-release-editor"
+                    onClick={() => setReleaseEditorOpen((open) => !open)}
+                  >
+                    <ButtonLabel icon="draft">
+                      {releaseEditorOpen ? 'Hide release details' : 'Edit release'}
+                    </ButtonLabel>
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (
+                      hasUnsavedChanges &&
+                      !confirmLeaveDesigner('You have unsaved Designer changes. Create a new draft without saving?')
+                    ) {
+                      return;
+                    }
+                    void run(async () => {
+                      await createDefinition({ definitionKey, displayName, entityType });
+                      applyRelease(await createDraftRelease(definitionKey, version, parseCloneSource(cloneSource)));
+                      setReleasePickerMode(null);
+                      await refreshCloneChoices();
+                    });
+                  }}
+                >
+                  <ButtonLabel icon="draft">Create draft</ButtonLabel>
+                </button>
+                <button
+                  type="button"
+                  disabled={!release || lifecycleStatus !== 'DRAFT'}
+                  onClick={() => {
+                    if (!release || lifecycleStatus !== 'DRAFT') {
+                      return;
+                    }
+                    if (!window.confirm(`Delete draft ${definitionKey} ${version}? This cannot be undone.`)) {
+                      return;
+                    }
+                    void run(async () => {
+                      const result = await deleteDraftRelease(definitionKey, version, rowVersion);
+                      setRelease(undefined);
+                      setRowVersion(0);
+                      setLifecycleStatus('DRAFT');
+                      setReleasePickerMode(null);
+                      await refreshCloneChoices();
+                      setStatus(
+                        result.definitionRemoved
+                          ? `${result.definitionKey} was deleted (no remaining releases). Open another release or Create draft.`
+                          : `${result.definitionKey} ${result.version} was deleted. Open another release or Create draft.`
+                      );
+                    });
+                  }}
+                >
+                  <ButtonLabel icon="trash">Delete draft</ButtonLabel>
+                </button>
+              </div>
             </div>
-          </div>
-          <p className="optic-designer-open-section-label">New draft</p>
-          <div className="optic-designer-open-identity">
-            <label>
-              Definition key
-              <input value={definitionKey} onChange={(event) => setDefinitionKey(event.target.value.toUpperCase())} />
-            </label>
-            <label>
-              Display name
-              <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
-            </label>
-            <label>
-              Entity type
-              <select
-                value={entityType}
-                aria-describedby="entity-type-help"
-                onChange={(event) => setEntityType(normalizeEntityType(event.target.value))}
-              >
-                {ENTITY_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Version
-              <input value={version} onChange={(event) => setVersion(event.target.value)} />
-            </label>
-            <label>
-              Clone from
-              <button
-                ref={cloneButtonRef}
-                type="button"
-                className="optic-designer-open-picker-field"
-                aria-describedby="clone-from-help"
-                aria-haspopup="dialog"
-                onClick={() => void openReleasePicker('clone')}
-              >
-                <span className="optic-designer-open-picker-field-copy">
-                  <strong>{cloneSourceSummary()}</strong>
-                  {cloneSource ? (
-                    <span className="optic-form-key">{cloneSource.replace('@', ' · ')}</span>
-                  ) : (
-                    <span>Start empty, or pick a release to copy</span>
-                  )}
-                </span>
-                <ButtonLabel icon="folder">Browse</ButtonLabel>
-              </button>
-            </label>
-          </div>
-          <p id="entity-type-help" className="optic-help optic-designer-open-clone-help">
-            Workload is a form case (I-407). Mail item is the envelope that can have one or more workloads. Picking Clone
-            from fills this from that definition; you can still change it before Create draft. Opening a release shows
-            its saved type. New queues use the same type.
-          </p>
-          <p id="clone-from-help" className="optic-help optic-designer-open-clone-help">
-            Copies forms, workflow, and catalog from the picked release and fills Entity type to match that definition.
-            Workspace Try uses the newest DRAFT, so clone that draft if you want the same officer screens (for example New
-            Mail Item). A published snapshot may be an older or simpler package. Cloning onto a different definition
-            rewrites form keys, internal queue keys, form
-            titles, and mail spawn targets to the new type (I-407 → I-936) so Live queues do not collide. Officer-facing
-            queue names stay as they were (Ready for Data Entry). A new version of the same definition keeps the existing
-            keys. Delete draft removes an opened DRAFT (leftover clones, unused experiments) and any Try cases cooked
-            from that draft. Published releases cannot be deleted; retire them from Lifecycle instead.
-          </p>
-          <div className="optic-designer-open-forms">
+          </section>
+
+          <div
+            id="optic-designer-release-editor"
+            className="optic-designer-release-editor"
+            hidden={Boolean(release) && !releaseEditorOpen}
+          >
+          <section className="optic-designer-open-zone" aria-label="New draft">
+            <p className="optic-designer-open-section-label">New draft</p>
+            <div className="optic-designer-open-identity">
+              <label>
+                Definition key
+                <input value={definitionKey} onChange={(event) => setDefinitionKey(event.target.value.toUpperCase())} />
+              </label>
+              <label>
+                Display name
+                <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
+              </label>
+              <label>
+                Entity type
+                <select
+                  value={entityType}
+                  aria-describedby="entity-type-help"
+                  onChange={(event) => setEntityType(normalizeEntityType(event.target.value))}
+                >
+                  {ENTITY_TYPE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Version
+                <input value={version} onChange={(event) => setVersion(event.target.value)} />
+              </label>
+              <label>
+                Clone from
+                <button
+                  ref={cloneButtonRef}
+                  type="button"
+                  className="optic-designer-open-picker-field"
+                  aria-describedby="clone-from-help"
+                  aria-haspopup="dialog"
+                  onClick={() => void openReleasePicker('clone')}
+                >
+                  <span className="optic-designer-open-picker-field-copy">
+                    <strong>{cloneSourceSummary()}</strong>
+                    {cloneSource ? (
+                      <span className="optic-form-key">{cloneSource.replace('@', ' · ')}</span>
+                    ) : (
+                      <span>Start empty, or pick a release to copy</span>
+                    )}
+                  </span>
+                  <ButtonLabel icon="folder">Browse</ButtonLabel>
+                </button>
+              </label>
+            </div>
+            <div className="optic-designer-open-helps">
+              <details className="optic-designer-open-help">
+                <summary>About entity type</summary>
+                <p id="entity-type-help" className="optic-help optic-designer-open-clone-help">
+                  Workload is a form case (I-407). Mail item is the envelope that can have one or more workloads. Picking
+                  Clone from fills this from that definition; you can still change it before Create draft. Opening a
+                  release shows its saved type. New queues use the same type.
+                </p>
+              </details>
+              <details className="optic-designer-open-help">
+                <summary>About clone and delete</summary>
+                <p id="clone-from-help" className="optic-help optic-designer-open-clone-help">
+                  Copies forms, workflow, and catalog from the picked release and fills Entity type to match that
+                  definition. Workspace Try uses the newest DRAFT, so clone that draft if you want the same officer
+                  screens (for example New Mail Item). A published snapshot may be an older or simpler package. Cloning
+                  onto a different definition rewrites form keys, internal queue keys, form titles, and mail spawn
+                  targets to the new type (I-407 → I-936) so Live queues do not collide. Officer-facing queue names stay
+                  as they were (Ready for Data Entry). A new version of the same definition keeps the existing keys.
+                  Delete draft removes an opened DRAFT (leftover clones, unused experiments) and any Try cases cooked
+                  from that draft. Published releases cannot be deleted; retire them from Lifecycle instead.
+                </p>
+              </details>
+            </div>
+          </section>
+
+          <section className="optic-designer-open-zone optic-designer-open-forms" aria-labelledby="draft-forms-label">
             <p className="optic-designer-open-section-label" id="draft-forms-label">
               Forms on this draft
             </p>
             <p className="optic-help">
-              Listed in workflow stage order (earliest stage that uses the form first). Link forms on the Workflow
-              tab to change the order.
+              Listed in workflow stage order (earliest stage that uses the form first). Link forms on the Workflow tab to
+              change the order.
             </p>
             <div className="optic-designer-open-toolbar" role="group" aria-labelledby="draft-forms-label">
               <label>
@@ -597,12 +809,11 @@ export function DesignerWorkspace() {
                 </button>
               </div>
             </div>
+          </section>
           </div>
         </fieldset>
         <div className="optic-designer-open-footer">
           <p className="optic-help optic-status" role="status">
-            <StatusPill>{lifecycleStatus}</StatusPill>
-            {release?.active ? <StatusPill>Live</StatusPill> : null}
             {status} {readOnly ? 'Save is disabled because only DRAFT releases can be edited.' : ''}
           </p>
         </div>
@@ -718,49 +929,72 @@ export function DesignerWorkspace() {
           </div>
         </div>
       ) : null}
+      {!release ? (
+        <p className="optic-designer-empty-hint" role="status">
+          Open a definition or create a draft above, then author Form → Workflow → Catalog before Try and
+          Lifecycle.
+        </p>
+      ) : null}
       <nav className="optic-designer-nav" aria-label="Designer">
-        <DesignerNavGroup label="Build">
-          <DesignerNavButton icon="form" pressed={tab === 'form'} onClick={() => setTab('form')}>
-            Form
-          </DesignerNavButton>
-          <DesignerNavButton icon="designer" pressed={tab === 'workflow'} onClick={() => setTab('workflow')}>
-            Workflow
-          </DesignerNavButton>
-          <DesignerNavButton icon="inbox" pressed={tab === 'catalog'} onClick={() => setTab('catalog')}>
-            Catalog
-          </DesignerNavButton>
-          <DesignerNavButton icon="draft" pressed={tab === 'schema'} onClick={() => setTab('schema')}>
-            Schema
-          </DesignerNavButton>
-        </DesignerNavGroup>
-        {tryTabEnabled || simulateTabEnabled ? (
-          <DesignerNavGroup label="Rehearse">
-            {tryTabEnabled ? (
-              <DesignerNavButton icon="live" pressed={tab === 'try'} onClick={() => setTab('try')}>
-                Try
-              </DesignerNavButton>
-            ) : null}
-            {simulateTabEnabled ? (
-              <DesignerNavButton icon="generate" pressed={tab === 'simulate'} onClick={() => setTab('simulate')}>
-                Simulate
-              </DesignerNavButton>
-            ) : null}
+        <div className="optic-designer-nav-groups">
+          <DesignerNavGroup label="Build" hint="Author the release">
+            <DesignerNavButton
+              icon="form"
+              pressed={tab === 'form'}
+              dirty={formDirty}
+              onClick={() => setTab('form')}
+            >
+              Form
+            </DesignerNavButton>
+            <DesignerNavButton
+              icon="designer"
+              pressed={tab === 'workflow'}
+              dirty={workflowDirty}
+              onClick={() => setTab('workflow')}
+            >
+              Workflow
+            </DesignerNavButton>
+            <DesignerNavButton
+              icon="inbox"
+              pressed={tab === 'catalog'}
+              dirty={catalogDirty}
+              onClick={() => setTab('catalog')}
+            >
+              Catalog
+            </DesignerNavButton>
+            <DesignerNavButton icon="draft" pressed={tab === 'schema'} onClick={() => setTab('schema')}>
+              Schema
+            </DesignerNavButton>
           </DesignerNavGroup>
-        ) : null}
-        {lifecycleTabEnabled || diffTabEnabled ? (
-          <DesignerNavGroup label="Release">
-            {lifecycleTabEnabled ? (
-              <DesignerNavButton icon="clock" pressed={tab === 'lifecycle'} onClick={() => setTab('lifecycle')}>
-                Lifecycle
-              </DesignerNavButton>
-            ) : null}
-            {diffTabEnabled ? (
-              <DesignerNavButton icon="diff" pressed={tab === 'diff'} onClick={() => setTab('diff')}>
-                Diff
-              </DesignerNavButton>
-            ) : null}
-          </DesignerNavGroup>
-        ) : null}
+          {tryTabEnabled || simulateTabEnabled ? (
+            <DesignerNavGroup label="Rehearse" hint="Try before promote">
+              {tryTabEnabled ? (
+                <DesignerNavButton icon="live" pressed={tab === 'try'} onClick={() => setTab('try')}>
+                  Try
+                </DesignerNavButton>
+              ) : null}
+              {simulateTabEnabled ? (
+                <DesignerNavButton icon="generate" pressed={tab === 'simulate'} onClick={() => setTab('simulate')}>
+                  Simulate
+                </DesignerNavButton>
+              ) : null}
+            </DesignerNavGroup>
+          ) : null}
+          {lifecycleTabEnabled || diffTabEnabled ? (
+            <DesignerNavGroup label="Release" hint="Validate and promote">
+              {lifecycleTabEnabled ? (
+                <DesignerNavButton icon="clock" pressed={tab === 'lifecycle'} onClick={() => setTab('lifecycle')}>
+                  Lifecycle
+                </DesignerNavButton>
+              ) : null}
+              {diffTabEnabled ? (
+                <DesignerNavButton icon="diff" pressed={tab === 'diff'} onClick={() => setTab('diff')}>
+                  Diff
+                </DesignerNavButton>
+              ) : null}
+            </DesignerNavGroup>
+          ) : null}
+        </div>
         <button
           type="button"
           className="optic-guide-button optic-designer-nav-help"
@@ -769,6 +1003,8 @@ export function DesignerWorkspace() {
           <ButtonLabel icon="help">User guide</ButtonLabel>
         </button>
       </nav>
+
+      <div className="optic-designer-stage" data-tab={tab}>
       {guideOpen ? (
         <UserGuideDialog
           title="Designer user guide"
@@ -1015,6 +1251,7 @@ export function DesignerWorkspace() {
           queues={release?.queues && Object.keys(release.queues).length > 0 ? release.queues : queues}
           forms={release?.forms && Object.keys(release.forms).length > 0 ? release.forms : forms}
           actions={release?.actions}
+          slas={release?.slas && Object.keys(release.slas).length > 0 ? release.slas : slas}
           enabled={Boolean(release)}
           errorSummary={errorSummary}
           onError={setErrorSummary}
@@ -1062,6 +1299,7 @@ export function DesignerWorkspace() {
           onError={setErrorSummary}
         />
       ) : null}
+      </div>
     </div>
   );
 }
@@ -1074,7 +1312,7 @@ function ReleaseSchemaPanel({
 }: {
   forms: Record<string, StageFormDefinition>;
   savedSchema?: JsonSchema;
-  errorSummary?: string;
+  errorSummary?: DisplayError;
   onEditForm?: () => void;
 }) {
   const merged = useMemo(() => releaseSchemaFromForms(forms, savedSchema), [forms, savedSchema]);
@@ -1099,11 +1337,7 @@ function ReleaseSchemaPanel({
           </div>
         ) : null}
       </header>
-      {errorSummary ? (
-        <ErrorSummary key={errorSummary} focus>
-          <DesignerErrorBody message={errorSummary} />
-        </ErrorSummary>
-      ) : null}
+      <CaughtErrorBanner error={errorSummary} />
       <ul className="optic-release-schema-forms">
         {contributors.map((item) => (
           <li key={item.formKey}>
@@ -1155,15 +1389,17 @@ function LifecyclePanel({
   lifecycleStatus: string;
   active: boolean;
   enabled: boolean;
-  errorSummary?: string;
+  errorSummary?: DisplayError;
   onApplied: (next: DesignerRelease, message?: string) => void;
   onStatus: (message: string) => void;
-  onError: (message: string | undefined) => void;
+  onError: (message: DisplayError | undefined) => void;
 }) {
   const [actorId, setActorId] = useState('author@example.gov');
   const [comment, setComment] = useState('');
   const [validation, setValidation] = useState<ValidateReleaseResult | undefined>();
   const [importMode, setImportMode] = useState<'DRAFT' | 'PUBLISHED'>('DRAFT');
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importBusy, setImportBusy] = useState(false);
   const importFileRef = useRef<HTMLInputElement | null>(null);
   const operations = lifecycleOperations(lifecycleStatus);
 
@@ -1180,7 +1416,7 @@ function LifecyclePanel({
             : undefined
       );
     } catch (error: unknown) {
-      onError(caughtDesignerMessage(error));
+      onError(caughtDesignerError(error));
     }
   }
 
@@ -1214,14 +1450,30 @@ function LifecyclePanel({
       URL.revokeObjectURL(url);
       onStatus(`Downloaded ${definitionKey} ${version} package${exported.checksum ? ` (${exported.checksum.slice(0, 12)}…)` : ''}.`);
     } catch (error: unknown) {
-      onError(caughtDesignerMessage(error));
+      onError(caughtDesignerError(error));
     }
   }
 
-  async function importSelectedFile(file: File) {
+  function chooseImportFile(file: File | undefined) {
+    setImportFile(file ?? null);
+    onError(undefined);
+  }
+
+  function clearImportFile() {
+    setImportFile(null);
+    if (importFileRef.current) {
+      importFileRef.current.value = '';
+    }
+  }
+
+  async function runImportPackage() {
+    if (!importFile || importBusy) {
+      return;
+    }
+    setImportBusy(true);
     try {
       onError(undefined);
-      const text = await readFileText(file);
+      const text = await readFileText(importFile);
       const raw = JSON.parse(text) as {
         package?: Record<string, unknown>;
         checksum?: string;
@@ -1246,6 +1498,7 @@ function LifecyclePanel({
         },
         actorId
       );
+      clearImportFile();
       onApplied(
         next,
         importMode === 'PUBLISHED'
@@ -1253,11 +1506,9 @@ function LifecyclePanel({
           : `Imported ${next.definitionKey} ${next.version} as DRAFT.`
       );
     } catch (error: unknown) {
-      onError(caughtDesignerMessage(error));
+      onError(caughtDesignerError(error));
     } finally {
-      if (importFileRef.current) {
-        importFileRef.current.value = '';
-      }
+      setImportBusy(false);
     }
   }
 
@@ -1281,11 +1532,7 @@ function LifecyclePanel({
           </p>
         </div>
       </header>
-      {errorSummary ? (
-        <ErrorSummary key={errorSummary} focus>
-          <DesignerErrorBody message={errorSummary} />
-        </ErrorSummary>
-      ) : null}
+      <CaughtErrorBanner error={errorSummary} />
 
       <section className="optic-lifecycle-panel" aria-labelledby="lifecycle-status-heading">
         <header className="optic-lifecycle-package-header">
@@ -1351,7 +1598,7 @@ function LifecyclePanel({
                     );
                   } catch (error: unknown) {
                     setValidation(undefined);
-                    onError(caughtDesignerMessage(error));
+                    onError(caughtDesignerError(error));
                   }
                 }}
               >
@@ -1452,19 +1699,38 @@ function LifecyclePanel({
               ref={importFileRef}
               type="file"
               accept="application/json,.json"
-              aria-label="Import package file"
+              aria-label="Choose package file"
               className="optic-lifecycle-package-file"
               onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) {
-                  void importSelectedFile(file);
-                }
+                chooseImportFile(event.target.files?.[0]);
               }}
             />
+            {importFile ? (
+              <p className="optic-help optic-lifecycle-package-chosen" role="status">
+                Selected: <strong>{importFile.name}</strong>
+              </p>
+            ) : (
+              <p className="optic-help optic-lifecycle-package-chosen">No package file selected yet.</p>
+            )}
             <div className="optic-lifecycle-actions">
-              <button type="button" onClick={() => importFileRef.current?.click()}>
-                <ButtonLabel icon="folder">Choose package file</ButtonLabel>
+              <button type="button" disabled={importBusy} onClick={() => importFileRef.current?.click()}>
+                <ButtonLabel icon="folder">
+                  {importFile ? 'Choose a different file' : 'Choose package file'}
+                </ButtonLabel>
               </button>
+              <button
+                type="button"
+                className="optic-button-primary"
+                disabled={!importFile || importBusy}
+                onClick={() => void runImportPackage()}
+              >
+                <ButtonLabel icon="save">{importBusy ? 'Importing…' : 'Import package'}</ButtonLabel>
+              </button>
+              {importFile ? (
+                <button type="button" disabled={importBusy} onClick={() => clearImportFile()}>
+                  Clear
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
@@ -1594,8 +1860,8 @@ function SimulatePanel({
   workflow: WorkflowDefinition;
   savedWorkflow?: WorkflowDefinition;
   catalog: WorkflowCatalog;
-  errorSummary?: string;
-  onError: (message: string | undefined) => void;
+  errorSummary?: DisplayError;
+  onError: (message: DisplayError | undefined) => void;
 }) {
   const transitionSets = workflow.transitionSets;
   const savedKeys = new Set((savedWorkflow?.transitionSets ?? []).map((set) => set.transitionSetKey));
@@ -1623,11 +1889,7 @@ function SimulatePanel({
           </p>
         </div>
       </header>
-      {errorSummary ? (
-        <ErrorSummary key={errorSummary} focus>
-          <DesignerErrorBody message={errorSummary} />
-        </ErrorSummary>
-      ) : null}
+      <CaughtErrorBanner error={errorSummary} />
       {transitionSets.length === 0 ? (
         <p className="optic-help">
           No transition sets on this canvas. On Workflow, select a non-terminal stage, add outbound transitions, then
@@ -1671,7 +1933,7 @@ function SimulatePanel({
               );
             } catch (error: unknown) {
               setResult(undefined);
-              onError(caughtDesignerMessage(error));
+              onError(caughtDesignerError(error));
             }
           }}
         >
@@ -1723,8 +1985,8 @@ function DiffPanel({
 }: {
   definitionKey: string;
   version: string;
-  errorSummary?: string;
-  onError: (message: string | undefined) => void;
+  errorSummary?: DisplayError;
+  onError: (message: DisplayError | undefined) => void;
 }) {
   const [versions, setVersions] = useState<ReleaseCatalogItem[]>([]);
   const [fromVersion, setFromVersion] = useState(version);
@@ -1777,7 +2039,7 @@ function DiffPanel({
     } catch (error: unknown) {
       setDiff(undefined);
       setCompared(false);
-      onError(caughtDesignerMessage(error));
+      onError(caughtDesignerError(error));
     } finally {
       setBusy(false);
     }
@@ -1794,11 +2056,7 @@ function DiffPanel({
           </p>
         </div>
       </header>
-      {errorSummary ? (
-        <ErrorSummary key={errorSummary} focus>
-          <DesignerErrorBody message={errorSummary} />
-        </ErrorSummary>
-      ) : null}
+      <CaughtErrorBanner error={errorSummary} />
 
       <section className="optic-lifecycle-panel" aria-labelledby="diff-compare-heading">
         <header className="optic-lifecycle-package-header">
@@ -2055,10 +2313,21 @@ function seedFormSchemas(
   );
 }
 
-function DesignerNavGroup({ label, children }: { label: string; children: ReactNode }) {
+function DesignerNavGroup({
+  label,
+  hint,
+  children
+}: {
+  label: string;
+  hint?: string;
+  children: ReactNode;
+}) {
   return (
     <div className="optic-designer-nav-group">
-      <p className="optic-designer-nav-label">{label}</p>
+      <div className="optic-designer-nav-group-heading">
+        <p className="optic-designer-nav-label">{label}</p>
+        {hint ? <p className="optic-designer-nav-hint">{hint}</p> : null}
+      </div>
       <div className="optic-designer-view-toggle" role="group" aria-label={label}>
         {children}
       </div>
@@ -2069,17 +2338,28 @@ function DesignerNavGroup({ label, children }: { label: string; children: ReactN
 function DesignerNavButton({
   icon,
   pressed,
+  dirty,
   onClick,
   children
 }: {
   icon: IconName;
   pressed: boolean;
+  dirty?: boolean;
   onClick: () => void;
   children: string;
 }) {
   return (
-    <button type="button" aria-pressed={pressed} onClick={onClick}>
-      <ButtonLabel icon={icon}>{children}</ButtonLabel>
+    <button
+      type="button"
+      aria-pressed={pressed}
+      data-dirty={dirty ? 'true' : undefined}
+      title={dirty ? `${children} has unsaved changes` : undefined}
+      onClick={onClick}
+    >
+      <ButtonLabel icon={icon}>
+        {children}
+        {dirty ? <span className="optic-designer-nav-dirty" aria-hidden="true" /> : null}
+      </ButtonLabel>
     </button>
   );
 }
@@ -2092,6 +2372,20 @@ function nextFormKey(forms: Record<string, StageFormDefinition>): string {
     key = `STAGE_FORM_${index}`;
   }
   return key;
+}
+
+function formatSavedWhen(at: number): string {
+  const deltaMs = Math.max(0, Date.now() - at);
+  if (deltaMs < 15_000) {
+    return 'just now';
+  }
+  if (deltaMs < 60_000) {
+    return `${Math.max(1, Math.floor(deltaMs / 1000))}s ago`;
+  }
+  if (deltaMs < 3_600_000) {
+    return `${Math.max(1, Math.floor(deltaMs / 60_000))}m ago`;
+  }
+  return new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }
 
 function releaseStatusLine(next: DesignerRelease): string {
@@ -2219,18 +2513,8 @@ function describeTransitionSet(
   return `${transitionSetKey} — not used by a stage`;
 }
 
-function formatDesignerError(error: DesignerApiError): string {
-  return formatApiError(error);
-}
-
-function caughtDesignerMessage(error: unknown): string {
-  if (error instanceof DesignerApiError) {
-    return formatDesignerError(error);
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return designerUnavailable();
+function caughtDesignerError(error: unknown): DisplayError {
+  return asDisplayError(error, designerUnavailable());
 }
 
 function readFileText(file: File): Promise<string> {

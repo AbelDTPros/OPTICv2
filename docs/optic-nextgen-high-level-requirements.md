@@ -1,4 +1,4 @@
-# OPTIC NextGen — High-Level Requirements
+# OPTIC v2.0 — High-Level Requirements
 
 *For prospective customer / contractual scoping*
 

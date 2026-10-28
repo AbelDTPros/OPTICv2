@@ -35,7 +35,9 @@ import {
   updateField,
   updateSection
 } from './form-model.js';
-import { DesignerErrorBody, ErrorSummary } from '../ui/ErrorSummary.js';
+import type { DisplayError } from '../api/apply-api-error.js';
+import { CaughtErrorBanner } from '../ui/CaughtErrorBanner.js';
+import { ErrorSummary } from '../ui/ErrorSummary.js';
 import { ButtonLabel } from '../ui/Icon.js';
 import { PALETTE_COMPONENTS, paletteLabel, paletteOptions } from './palette.js';
 import { emptyPredicate, RuleExpressionEditor } from './RuleExpressionEditor.js';
@@ -69,7 +71,7 @@ export interface FormDesignerProps {
   savedForm?: StageFormDefinition;
   entityType?: string;
   readOnly?: boolean;
-  errorSummary?: string;
+  errorSummary?: DisplayError;
   onChange: (form: StageFormDefinition) => void;
   onSave?: (form: StageFormDefinition) => void;
 }
@@ -417,6 +419,8 @@ export function FormDesigner({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [view, readOnly, form, selection, fieldClipboard, selectedSectionKey]);
 
+  const modKey = isApplePlatform() ? '⌘' : 'Ctrl';
+
   return (
     <section className="optic-designer" aria-labelledby="form-designer-heading">
       <header className="optic-designer-header">
@@ -426,10 +430,10 @@ export function FormDesigner({
         </div>
         <div className="optic-designer-header-tools optic-designer-toolbar-tools">
           <div className="optic-designer-header-actions" role="group" aria-label="Edit actions">
-            <button type="button" disabled={readOnly || !canUndo} onClick={undoChange} title="Undo (Ctrl/⌘Z)">
+            <button type="button" disabled={readOnly || !canUndo} onClick={undoChange} title={`Undo (${modKey}+Z)`}>
               <ButtonLabel icon="undo">Undo</ButtonLabel>
             </button>
-            <button type="button" disabled={readOnly || !canRedo} onClick={redoChange} title="Redo (Ctrl/⌘Y)">
+            <button type="button" disabled={readOnly || !canRedo} onClick={redoChange} title={`Redo (${modKey}+Y)`}>
               <ButtonLabel icon="redo">Redo</ButtonLabel>
             </button>
             <button
@@ -437,10 +441,10 @@ export function FormDesigner({
               disabled={readOnly || fieldClipboard.length === 0 || !selectedSectionKey}
               title={
                 fieldClipboard.length === 0
-                  ? 'Copy a field on the canvas first (Ctrl/⌘C)'
+                  ? `Copy a field on the canvas first (${modKey}+C)`
                   : !selectedSectionKey
                     ? 'Select a section to paste into'
-                    : 'Paste copied field(s) (Ctrl/⌘V)'
+                    : `Paste copied field(s) (${modKey}+V)`
               }
               onClick={pasteClipboardFields}
             >
@@ -508,16 +512,15 @@ export function FormDesigner({
         </div>
       </details>
 
-      {errorSummary || issues.length > 0 ? (
-        <ErrorSummary role={errorSummary ? 'alert' : 'status'} focus={Boolean(errorSummary)} heading={issues.length > 0 && !errorSummary ? 'Validation' : undefined}>
-          {errorSummary ? <DesignerErrorBody message={errorSummary} /> : <p>Review the highlighted designer fields before saving.</p>}
-          {issues.length > 0 ? (
-            <ul>
-              {issues.map((issue) => (
-                <li key={issue.path}>{issue.message}</li>
-              ))}
-            </ul>
-          ) : null}
+      <CaughtErrorBanner error={errorSummary} />
+      {issues.length > 0 ? (
+        <ErrorSummary role="status" focus={!errorSummary} heading="Validation">
+          <p>Review the designer fields before saving.</p>
+          <ul>
+            {issues.map((issue) => (
+              <li key={issue.path}>{issue.message}</li>
+            ))}
+          </ul>
         </ErrorSummary>
       ) : null}
 
@@ -657,11 +660,10 @@ export function FormDesigner({
                 Add section
               </button>
             </div>
-            <p className="optic-help">
-              Multi-select: Ctrl/⌘-click toggle, Shift-click range, Ctrl/⌘A all in section. Then Del, Ctrl/⌘C,
-              Ctrl/⌘V. Undo Ctrl/⌘Z · Redo Ctrl/⌘Y. Paste is in the header. Ignored while typing in a property
-              field.
-            </p>
+            <details className="optic-designer-shortcuts">
+              <summary>Keyboard shortcuts</summary>
+              <FormShortcutHelp />
+            </details>
           </aside>
 
           <div
@@ -860,7 +862,7 @@ export function FormDesigner({
                           className="optic-designer-quiet-button"
                           disabled={readOnly}
                           aria-label={`Copy ${field.label}`}
-                          title="Copy (Ctrl/⌘C)"
+                          title={`Copy (${modKey}+C)`}
                           onClick={() => {
                             const keys =
                               selection?.type === 'field' &&
@@ -944,8 +946,8 @@ export function FormDesigner({
                   <strong>{selectedFieldCount}</strong> fields selected in this section.
                 </p>
                 <p className="optic-help">
-                  Copy, paste, or delete applies to all selected fields. Click one field (without
-                  Ctrl/⌘) to edit its properties alone.
+                  Copy, paste, or delete applies to all selected fields. Click one field (without{' '}
+                  {modKey}) to edit its properties alone.
                 </p>
                 <ul>
                   {selectedFieldKeys.map((key) => {
@@ -984,6 +986,44 @@ export function FormDesigner({
         </div>
       ) : null}
     </section>
+  );
+}
+
+function isApplePlatform(): boolean {
+  if (typeof navigator === 'undefined') {
+    return false;
+  }
+  return /Mac|iPhone|iPad|iPod/.test(navigator.platform) || /Mac OS/.test(navigator.userAgent);
+}
+
+function FormShortcutHelp() {
+  const mod = isApplePlatform() ? '⌘' : 'Ctrl';
+  const rows: Array<{ keys: string[]; action: string }> = [
+    { keys: [`${mod}+click`], action: 'Toggle multi-select' },
+    { keys: ['Shift+click'], action: 'Select a range' },
+    { keys: [`${mod}+A`], action: 'Select all fields in the section' },
+    { keys: ['Delete'], action: 'Remove selected fields' },
+    { keys: [`${mod}+C`], action: 'Copy selected fields' },
+    { keys: [`${mod}+V`], action: 'Paste (header Paste button)' },
+    { keys: [`${mod}+Z`], action: 'Undo' },
+    { keys: [`${mod}+Y`], action: 'Redo' }
+  ];
+  return (
+    <div className="optic-designer-shortcut-help">
+      <ul className="optic-designer-shortcut-list">
+        {rows.map((row) => (
+          <li key={row.action}>
+            <span className="optic-designer-shortcut-keys" aria-hidden="true">
+              {row.keys.map((key) => (
+                <kbd key={key}>{key}</kbd>
+              ))}
+            </span>
+            <span className="optic-designer-shortcut-action">{row.action}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="optic-help">Shortcuts are ignored while typing in a property field.</p>
+    </div>
   );
 }
 
@@ -1348,126 +1388,6 @@ function FieldProperties({
           ? 'Path is unused while Display from is set — the value comes from the other form’s field.'
           : 'Usually relative to this form’s dataPath (for example $.receiptNumber). For values shared across stages, use $.workload.fieldName on a Workload definition or $.mailItem.fieldName on a Mail item — no separate form required.'}
       </p>
-      {field.component === 'READ_ONLY_VALUE' ? (
-        <>
-          <label>
-            Display from form
-            <select
-              value={field.displayFromFormKey ?? ''}
-              disabled={readOnly}
-              onChange={(event) => {
-                const nextFormKey = event.target.value || undefined;
-                patch({
-                  displayFromFormKey: nextFormKey,
-                  displayFromFieldKey: undefined
-                });
-              }}
-            >
-              <option value="">None — use Path / Fill from</option>
-              {field.displayFromFormKey &&
-              !displayFromForms.some((entry) => entry.formKey === field.displayFromFormKey) &&
-              field.displayFromFormKey !== form.formKey ? (
-                <option value={field.displayFromFormKey}>
-                  {field.displayFromFormKey} (not on release)
-                </option>
-              ) : null}
-              {displayFromForms.map((entry) => (
-                <option key={entry.formKey} value={entry.formKey}>
-                  {entry.title?.trim() || entry.formKey} ({entry.formKey})
-                </option>
-              ))}
-            </select>
-          </label>
-          {field.displayFromFormKey ? (
-            <label>
-              Display from field
-              <select
-                value={field.displayFromFieldKey ?? ''}
-                disabled={readOnly}
-                onChange={(event) => patch({ displayFromFieldKey: event.target.value || undefined })}
-              >
-                <option value="">Select a field</option>
-                {field.displayFromFieldKey &&
-                !displayFromFields.some((item) => item.fieldKey === field.displayFromFieldKey) ? (
-                  <option value={field.displayFromFieldKey}>
-                    {field.displayFromFieldKey} (not on form)
-                  </option>
-                ) : null}
-                {displayFromFields.map((item) => (
-                  <option key={item.fieldKey} value={item.fieldKey}>
-                    {item.label} ({item.fieldKey})
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-          <p className="optic-help">
-            Show another form’s stored value on this screen without copying it. The other form keeps ownership; this
-            field is display-only.
-          </p>
-        </>
-      ) : null}
-      {fillFromOptions.length > 0 ? (
-        <>
-          <label>
-            Fill from
-            <select
-              value={field.fillFrom ?? ''}
-              disabled={readOnly}
-              onChange={(event) => {
-                const next = event.target.value;
-                if (!isFillFromSource(next)) {
-                  patch({ fillFrom: undefined, fillFromFieldKey: undefined });
-                  return;
-                }
-                patch({
-                  fillFrom: next,
-                  fillFromFieldKey: next === 'FIELD' ? field.fillFromFieldKey : undefined
-                });
-              }}
-            >
-              <option value="">None</option>
-              {fillFromOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          {field.fillFrom === 'FIELD' ? (
-            <label>
-              Copy from
-              <select
-                value={field.fillFromFieldKey ?? ''}
-                disabled={readOnly}
-                onChange={(event) => patch({ fillFromFieldKey: event.target.value || undefined })}
-              >
-                <option value="">Select a date field</option>
-                {dateSources.map((source) => (
-                  <option key={source.fieldKey} value={source.fieldKey}>
-                    {source.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-          <p className="optic-help">{fillFromHelp(field)}</p>
-        </>
-      ) : null}
-      {field.component === 'TRACKING_ID_DISPLAY' && !section?.repeatable ? (
-        <p className="optic-help">
-          Leave as <code>$.trackingId</code>. Try and officer screens show this case’s mail or workload tracking #.
-          Change the label to Mail Tracking # or Workload Tracking #.
-        </p>
-      ) : null}
-      {section?.repeatable ? (
-        <p className="optic-help">This path is relative to each workload copy, not the top of the form.</p>
-      ) : null}
-      <p className="optic-help" role="status">
-        {section?.repeatable
-          ? 'Repeated: officers get another copy of this field when they add a workload.'
-          : 'Not repeated. To repeat fields, select the section and turn on Repeat this section (Mail item forms).'}
-      </p>
       {canRequireField(field.component) ? (
         <>
           <label>
@@ -1483,38 +1403,10 @@ function FieldProperties({
             Optional fields can stay empty on Save. Required is written into JSON Schema and checked when Complete
             validates the stage form.
           </p>
-          <FieldValidationEditor field={field} readOnly={readOnly} onPatch={patch} />
         </>
       ) : (
         <p className="optic-help">Display-only fields are not required and are not schema-validated on Complete.</p>
       )}
-      <label>
-        Help text
-        <input value={field.helpText ?? ''} disabled={readOnly} onChange={(event) => patch({ helpText: event.target.value })} />
-      </label>
-      <label>
-        Width
-        <select
-          value={String(field.width ?? 12)}
-          disabled={readOnly}
-          onChange={(event) => patch({ width: Number(event.target.value) })}
-        >
-          <option value="6">Half</option>
-          <option value="12">Full</option>
-        </select>
-      </label>
-      <label>
-        Classification
-        <select
-          value={field.piiClassification ?? ''}
-          disabled={readOnly}
-          onChange={(event) => patch({ piiClassification: event.target.value || undefined })}
-        >
-          <option value="">None</option>
-          <option value="PII">PII</option>
-          <option value="SENSITIVE">Sensitive</option>
-        </select>
-      </label>
       {field.component === 'RADIO' ? (
         <RadioOptionsEditor
           options={field.options}
@@ -1531,6 +1423,163 @@ function FieldProperties({
           onChange={(options) => patch({ options })}
         />
       ) : null}
+      <details className="optic-designer-advanced">
+        <summary>Advanced</summary>
+        {field.component === 'READ_ONLY_VALUE' ? (
+          <>
+            <label>
+              Display from form
+              <select
+                value={field.displayFromFormKey ?? ''}
+                disabled={readOnly}
+                onChange={(event) => {
+                  const nextFormKey = event.target.value || undefined;
+                  patch({
+                    displayFromFormKey: nextFormKey,
+                    displayFromFieldKey: undefined
+                  });
+                }}
+              >
+                <option value="">None — use Path / Fill from</option>
+                {field.displayFromFormKey &&
+                !displayFromForms.some((entry) => entry.formKey === field.displayFromFormKey) &&
+                field.displayFromFormKey !== form.formKey ? (
+                  <option value={field.displayFromFormKey}>
+                    {field.displayFromFormKey} (not on release)
+                  </option>
+                ) : null}
+                {displayFromForms.map((entry) => (
+                  <option key={entry.formKey} value={entry.formKey}>
+                    {entry.title?.trim() || entry.formKey} ({entry.formKey})
+                  </option>
+                ))}
+              </select>
+            </label>
+            {field.displayFromFormKey ? (
+              <label>
+                Display from field
+                <select
+                  value={field.displayFromFieldKey ?? ''}
+                  disabled={readOnly}
+                  onChange={(event) => patch({ displayFromFieldKey: event.target.value || undefined })}
+                >
+                  <option value="">Select a field</option>
+                  {field.displayFromFieldKey &&
+                  !displayFromFields.some((item) => item.fieldKey === field.displayFromFieldKey) ? (
+                    <option value={field.displayFromFieldKey}>
+                      {field.displayFromFieldKey} (not on form)
+                    </option>
+                  ) : null}
+                  {displayFromFields.map((item) => (
+                    <option key={item.fieldKey} value={item.fieldKey}>
+                      {item.label} ({item.fieldKey})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            <p className="optic-help">
+              Show another form’s stored value on this screen without copying it. The other form keeps ownership; this
+              field is display-only.
+            </p>
+          </>
+        ) : null}
+        {fillFromOptions.length > 0 ? (
+          <>
+            <label>
+              Fill from
+              <select
+                value={field.fillFrom ?? ''}
+                disabled={readOnly}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  if (!isFillFromSource(next)) {
+                    patch({ fillFrom: undefined, fillFromFieldKey: undefined });
+                    return;
+                  }
+                  patch({
+                    fillFrom: next,
+                    fillFromFieldKey: next === 'FIELD' ? field.fillFromFieldKey : undefined
+                  });
+                }}
+              >
+                <option value="">None</option>
+                {fillFromOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {field.fillFrom === 'FIELD' ? (
+              <label>
+                Copy from
+                <select
+                  value={field.fillFromFieldKey ?? ''}
+                  disabled={readOnly}
+                  onChange={(event) => patch({ fillFromFieldKey: event.target.value || undefined })}
+                >
+                  <option value="">Select a date field</option>
+                  {dateSources.map((source) => (
+                    <option key={source.fieldKey} value={source.fieldKey}>
+                      {source.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            <p className="optic-help">{fillFromHelp(field)}</p>
+          </>
+        ) : null}
+        {field.component === 'TRACKING_ID_DISPLAY' && !section?.repeatable ? (
+          <p className="optic-help">
+            Leave as <code>$.trackingId</code>. Try and officer screens show this case’s mail or workload tracking #.
+            Change the label to Mail Tracking # or Workload Tracking #.
+          </p>
+        ) : null}
+        {section?.repeatable ? (
+          <p className="optic-help">This path is relative to each workload copy, not the top of the form.</p>
+        ) : null}
+        <p className="optic-help" role="status">
+          {section?.repeatable
+            ? 'Repeated: officers get another copy of this field when they add a workload.'
+            : 'Not repeated. To repeat fields, select the section and turn on Repeat this section (Mail item forms).'}
+        </p>
+        {canRequireField(field.component) ? (
+          <FieldValidationEditor field={field} readOnly={readOnly} onPatch={patch} />
+        ) : null}
+        <label>
+          Help text
+          <input
+            value={field.helpText ?? ''}
+            disabled={readOnly}
+            onChange={(event) => patch({ helpText: event.target.value })}
+          />
+        </label>
+        <label>
+          Width
+          <select
+            value={String(field.width ?? 12)}
+            disabled={readOnly}
+            onChange={(event) => patch({ width: Number(event.target.value) })}
+          >
+            <option value="6">Half</option>
+            <option value="12">Full</option>
+          </select>
+        </label>
+        <label>
+          Classification
+          <select
+            value={field.piiClassification ?? ''}
+            disabled={readOnly}
+            onChange={(event) => patch({ piiClassification: event.target.value || undefined })}
+          >
+            <option value="">None</option>
+            <option value="PII">PII</option>
+            <option value="SENSITIVE">Sensitive</option>
+          </select>
+        </label>
+      </details>
     </>
   );
 }

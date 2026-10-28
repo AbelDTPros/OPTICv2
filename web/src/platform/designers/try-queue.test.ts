@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { WorkflowDefinition } from '../../../../src/modules/configuration/domain/types.js';
-import { demoDesignerForm, demoDesignerQueue, demoDesignerWorkflow } from './demo-draft.js';
+import { demoDesignerForm, demoDesignerQueue, demoDesignerSla, demoDesignerWorkflow } from './demo-draft.js';
 import {
   isTerminalStage,
   itemsInQueue,
@@ -225,6 +225,31 @@ describe('try queue', () => {
     expect(page.columns.map((column) => column.label)).toContain('Applicant First Name');
     expect(page.rows[0]?.values.firstName).toBe('Ada');
     expect(page.rows[0]?.values.lastName).toBe('Lovelace');
+  });
+
+  it('computes slaState from stage clock when SLAs are provided', () => {
+    const queue = {
+      ...demoDesignerQueue,
+      columns: [...demoDesignerQueue.columns, 'slaState']
+    };
+    const withSla = {
+      ...demoDesignerWorkflow,
+      stages: demoDesignerWorkflow.stages.map((stage) =>
+        stage.stageKey === 'READY_FOR_DATA_ENTRY' ? { ...stage, slaKey: demoDesignerSla.slaKey } : stage
+      )
+    };
+    const page = trialQueuePage(
+      queue,
+      [itemFromSummary(summary)],
+      'I_90',
+      '0.1.0',
+      withSla,
+      1,
+      {},
+      undefined,
+      { [demoDesignerSla.slaKey]: demoDesignerSla }
+    );
+    expect(page.rows[0]?.values.slaState).toBe('BREACHED');
   });
 
   it('mints a short Crockford tracking id for new work', () => {

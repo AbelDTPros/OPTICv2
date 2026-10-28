@@ -12,6 +12,11 @@ export interface QueueProjectionRepository {
   ): Promise<QueueProjectionRecord | null>;
   query(query: QueueQuery, executor?: QueryExecutor): Promise<QueueQueryResult>;
   search(query: ProjectionSearchQuery, executor?: QueryExecutor): Promise<QueueQueryResult>;
+  /** All projected rows for the given definition keys (Live dashboard aggregates). */
+  listByDefinitionKeys(
+    definitionKeys: string[],
+    executor?: QueryExecutor
+  ): Promise<QueueProjectionRecord[]>;
   /** Drops Live queue cards for every instance pinned to the release (publish/activate scrub). */
   deleteByReleaseId(definitionReleaseId: number, executor?: QueryExecutor): Promise<number>;
 }

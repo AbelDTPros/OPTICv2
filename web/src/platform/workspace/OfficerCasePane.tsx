@@ -3,20 +3,24 @@ import { assignmentPermissions } from '../../../../src/modules/configuration/dom
 import { applyFillFromToBusinessData } from '../../../../src/modules/configuration/domain/fill-from.js';
 import type { StageFormDefinition, WorkflowDefinition } from '../../../../src/modules/configuration/domain/types.js';
 import { stageDataPatchFromCase } from '../../../../src/modules/workflow/domain/merge-patch.js';
-import { DynamicFormRenderer } from '../dynamic-forms/DynamicFormRenderer.js';
+import { DynamicFormRenderer, type FormFieldError } from '../dynamic-forms/DynamicFormRenderer.js';
 import { ButtonLabel, Icon, StatusPill } from '../ui/Icon.js';
 import { isTerminalStage, journeyStageTabs, stageForKey, visitedFormScreens } from '../designers/try-queue.js';
 import { officerDisplayName } from '../actors/demo-officers.js';
 import { type WorkflowSummary } from '../designers/workflow-api.js';
 import { ReassignDialog } from '../queues/ReassignDialog.js';
+import { TrackingIdLinkWithCopy } from '../tracking/TrackingIdDisplay.js';
 import { LabelSticker, qrSvgForPayload } from './LabelSticker.js';
 import { labelsForPacket, printLabels } from './labels.js';
+import { StageHistoryTimeline } from './StageHistoryTimeline.js';
 
 export function OfficerCasePane({
   working,
   workflow,
   forms = {},
   busy,
+  formErrors = [],
+  onFormEdit,
   onComplete,
   onAssign,
   onReassign,
@@ -27,6 +31,9 @@ export function OfficerCasePane({
   workflow?: WorkflowDefinition;
   forms?: Record<string, StageFormDefinition>;
   busy: boolean;
+  formErrors?: FormFieldError[];
+  /** Called with previous and next form values so callers can clear only edited field errors. */
+  onFormEdit?: (previous: unknown, next: unknown) => void;
   onComplete: (actionKey: string, dataPatch?: Record<string, unknown>) => void;
   onAssign?: () => void;
   onReassign?: (assignedTo: string) => void;
@@ -84,7 +91,9 @@ export function OfficerCasePane({
       <header className="optic-case-header">
         <div className="optic-case-identity">
           <h2 className="optic-case-title">{working.workflow.currentStageLabel}</h2>
-          <p className="optic-case-tracking">{working.trackingId}</p>
+          <div className="optic-case-tracking">
+            <TrackingIdLinkWithCopy trackingId={working.trackingId} />
+          </div>
         </div>
         <div
           className={`optic-case-ownership${working.workflow.assignedTo ? ' is-assigned' : ' is-unassigned'}`}
@@ -150,8 +159,8 @@ export function OfficerCasePane({
         ) : null}
         {working.packet?.parent ? (
           <p className="optic-case-callout">
-            Linked mail item <strong>{working.packet.parent.trackingId}</strong> — open a mail screen below for intake
-            data.
+            Linked mail item <TrackingIdLinkWithCopy trackingId={working.packet.parent.trackingId} /> — open a
+            mail screen below for intake data.
           </p>
         ) : working.entityType === 'WORKLOAD' ? (
           <p className="optic-case-callout optic-case-callout-muted">
@@ -182,25 +191,16 @@ export function OfficerCasePane({
           forms={forms}
           formValue={formValue}
           finished={finished}
-          onFormChange={finished ? () => undefined : setFormValue}
+          formErrors={formErrors}
+          onFormChange={
+            finished
+              ? () => undefined
+              : (next) => {
+                  onFormEdit?.(formValue, next);
+                  setFormValue(next);
+                }
+          }
         />
-
-        {working.visits.length > 0 ? (
-          <details className="optic-case-secondary">
-            <summary>Stage history ({working.visits.length})</summary>
-            <ol className="optic-try-visits">
-              {working.visits.map((visit) => {
-                const officer = visitOfficerLabel(visit);
-                return (
-                  <li key={`${visit.stageKey}-${visit.visitNumber}`}>
-                    {formatStageHistoryRow(visit, caseWorkflow)}
-                    {officer ? ` · ${officer}` : ''}
-                  </li>
-                );
-              })}
-            </ol>
-          </details>
-        ) : null}
 
         <details className="optic-case-secondary optic-case-labels">
           <summary>Labels</summary>
@@ -251,10 +251,11 @@ export function OfficerCasePane({
               type="button"
               className="optic-case-action-quiet optic-case-action-back"
               disabled={busy}
-              aria-label="Back to queues"
+              aria-label="Close case"
+              title="Close case (Esc)"
               onClick={onClose}
             >
-              <ButtonLabel icon="queue">Queues</ButtonLabel>
+              <ButtonLabel icon="clear">Close case</ButtonLabel>
             </button>
           </div>
         </div>
@@ -269,6 +270,7 @@ export function OfficerStageScreens({
   forms = {},
   formValue,
   finished,
+  formErrors = [],
   onFormChange
 }: {
   working: WorkflowSummary;
@@ -276,6 +278,7 @@ export function OfficerStageScreens({
   forms?: Record<string, StageFormDefinition>;
   formValue: unknown;
   finished: boolean;
+  formErrors?: FormFieldError[];
   onFormChange: (value: unknown) => void;
 }) {
   const ownWorkflow = working.workflowDefinition ?? workflow;
@@ -401,7 +404,8 @@ export function OfficerStageScreens({
       {viewingPacket && parent ? (
         <>
           <p className="optic-help optic-case-readonly" role="status">
-            Read-only. This is the {viewingPacket.displayName} screen from mail item {parent.trackingId}.
+            Read-only. This is the {viewingPacket.displayName} screen from mail item{' '}
+            <TrackingIdLinkWithCopy trackingId={parent.trackingId} />.
           </p>
           <div className="optic-case-canvas">
             <DynamicFormRenderer
@@ -436,6 +440,12 @@ export function OfficerStageScreens({
               trackingId: working.trackingId,
               entityType: working.entityType
             }}
+            errors={finished ? [] : formErrors}
+            errorSummary={
+              finished || formErrors.length === 0
+                ? undefined
+                : 'Request validation failed. Review the highlighted fields and try again.'
+            }
             headingLevel={2}
             readOnly={finished}
             onChange={finished ? () => undefined : onFormChange}
@@ -466,43 +476,19 @@ export function OfficerStageScreens({
           </div>
         </>
       ) : (
-        <p className="optic-help optic-case-empty">
+        <p className="optic-help optic-case-empty" role="status">
           This stage has no form. Use an action to move on, or open an earlier screen.
         </p>
       )}
+      <StageHistoryTimeline
+        visits={working.visits}
+        workflow={ownWorkflow}
+        currentStageKey={currentStageKey}
+        jumpableStageKeys={ownTabs.map((tab) => tab.stageKey)}
+        onSelectStage={(stageKey) => setScreenKey(stageKey)}
+      />
     </section>
   );
-}
-
-function visitOfficerLabel(visit: WorkflowSummary['visits'][number]): string | null {
-  const actorId = visit.completedBy?.trim() || visit.assignedTo?.trim() || visit.enteredBy?.trim();
-  return actorId ? officerDisplayName(actorId) : null;
-}
-
-function formatStageHistoryRow(
-  visit: WorkflowSummary['visits'][number],
-  workflow?: WorkflowDefinition
-): string {
-  const from = stageDisplayName(workflow, visit.stageKey);
-  const pass = visit.visitNumber > 1 ? `Pass ${visit.visitNumber} · ` : '';
-  if (visit.nextStageKey) {
-    return `${pass}${from} → ${stageDisplayName(workflow, visit.nextStageKey)}`;
-  }
-  if (visit.completedAt) {
-    return `${pass}${from} (closed)`;
-  }
-  return `${pass}${from} (open)`;
-}
-
-function stageDisplayName(workflow: WorkflowDefinition | undefined, stageKey: string): string {
-  const labeled = workflow ? stageForKey(workflow, stageKey)?.displayName?.trim() : '';
-  if (labeled && labeled !== stageKey) {
-    return labeled;
-  }
-  return stageKey
-    .replace(/[_-]+/g, ' ')
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function packetScreenKey(stageKey: string): string {
