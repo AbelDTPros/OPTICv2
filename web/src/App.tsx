@@ -18,6 +18,7 @@ import { confirmLeaveDesigner } from './platform/designers/designer-leave-guard.
 import { DesignerWorkspace } from './platform/designers/DesignerWorkspace.js';
 import { SupervisorWorkspace } from './platform/supervisor/SupervisorWorkspace.js';
 import { OfficerWorkspace } from './platform/workspace/OfficerWorkspace.js';
+import { setCurrentOfficerId } from './platform/actors/demo-officers.ts';
 
 const VIEW_TITLES = {
   workspace: 'Workspace',
@@ -25,6 +26,8 @@ const VIEW_TITLES = {
   designer: 'Designer',
   admin: 'Admin'
 } as const;
+
+const LOGIN_URL = "/auth/OPTIC/v2/login";
 
 type AppView = keyof typeof VIEW_TITLES;
 
@@ -41,6 +44,44 @@ function initialShellView(): AppView {
 }
 
 export function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+    useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/auth/OPTIC/userinfo", {
+          credentials: "include",
+        })
+
+        if (!response.ok) {
+          window.location.replace(LOGIN_URL);
+          return;
+        }
+        const data = await response.json()
+
+        if(data?.user?.email) {
+          setCurrentOfficerId(data.user.email);
+        }
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  if (isCheckingAuth) {
+    return <div>Checking authentication...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <div>Authentication unavailable.</div>;
+  }
+
   return (
     <FeatureFlagsProvider>
       <AppShell />

@@ -101,6 +101,7 @@ import {
   entityTypeOptionLabel,
   normalizeEntityType
 } from './catalog-model.js';
+import { getCurrentOfficerId } from '../actors/demo-officers.ts'
 
 export function DesignerWorkspace() {
   const { isEnabled } = useFeatureFlags();
@@ -1394,7 +1395,7 @@ function LifecyclePanel({
   onStatus: (message: string) => void;
   onError: (message: DisplayError | undefined) => void;
 }) {
-  const [actorId, setActorId] = useState('author@example.gov');
+  const [actorId, setActorId] = useState(() => getCurrentOfficerId());
   const [comment, setComment] = useState('');
   const [validation, setValidation] = useState<ValidateReleaseResult | undefined>();
   const [importMode, setImportMode] = useState<'DRAFT' | 'PUBLISHED'>('DRAFT');

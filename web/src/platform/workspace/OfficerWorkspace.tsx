@@ -194,8 +194,8 @@ export function OfficerWorkspace() {
     if (actorOverrideEnabled) {
       return;
     }
-    setActorId(OFFICER_ACTOR_ID);
-    setCurrentOfficerId(OFFICER_ACTOR_ID);
+    setActorId(getCurrentOfficerId());
+    //setCurrentOfficerId(OFFICER_ACTOR_ID);
   }, [actorOverrideEnabled]);
   const [findExpanded, setFindExpanded] = useState(readFindExpandedPref);
   const [recentCases, setRecentCases] = useState<RecentCase[]>(readRecentCases);

@@ -155,14 +155,20 @@ export default defineConfig(async () => {
     console.info(`[optic] Vite proxying /api and /health to ${apiOrigin}`);
   }
   return {
+    base:'/OPTIC/v2/',
     plugins: [opticApiProxyPlugin(apiOrigin), react()],
     server: {
       host: true,
-      port: 5173,
+      port: 5174,
       strictPort: true,
       fs: {
         allow: [REPO_ROOT]
-      }
+      },
+      allowedHosts: [
+        "digicom-dev.uscis.dhs.gov",
+        "localhost",
+        "127.0.0.1",
+      ]
     },
     resolve: {
       alias: {
